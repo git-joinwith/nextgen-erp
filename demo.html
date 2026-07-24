@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NXTGEN ERP — Distributor Management Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+:root{
+  --bg:#f8f9fa; --card:#ffffff; --dark-deep:#0b1120;
+  --text-primary:#0f172a; --text-main:#343a40; --text-menu:#334155; --text-secondary:#64748b; --text-axis:#cbd5e1;
+  --border-card:#f1f3f5; --border-chart:#e2e8f0; --scrollbar:#ced4da;
+  --green:#10b981; --green-2:#34d399; --red:#ef4444;
+  --p-orange:#fff4e6; --p-purple:#f3e8ff; --p-yellow:#fef08a; --p-cyan:#e6fffa; --p-green:#ecfccb;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text-main); overflow:hidden; font-size:14px; -webkit-font-smoothing:antialiased;}
+h1,h2,h3,.brand-text b,.page-title,.stat-value,.modal-head h3{font-family:'Space Grotesk','Inter',sans-serif;}
+.mono{font-family:'JetBrains Mono',monospace;}
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-thumb{background:var(--scrollbar); border-radius:8px;}
+::-webkit-scrollbar-thumb:hover{background:#9aa5b1;}
+::-webkit-scrollbar-track{background:transparent;}
+button{font-family:inherit;}
+
+.page-shell{display:flex; flex-direction:column; height:100vh; width:100vw;}
+
+/* ============ CLASSIC MENU BAR ============ */
+.menubar{
+  display:flex; align-items:stretch; background:#11182a; height:38px; min-height:38px;
+  border-bottom:1px solid #050810; padding:0 6px; position:relative; z-index:80;
+}
+.menubar-item{position:relative; display:flex; align-items:center; padding:0 16px; font-size:12.5px; font-weight:600; color:#aab4c5; cursor:pointer; user-select:none;}
+.menubar-item:hover, .menubar-item.open{background:#1c2740; color:#fff;}
+.menubar-item .mn{text-decoration:underline; text-decoration-color:#4a5b7a;}
+.menubar .brand-mini{display:flex; align-items:center; gap:8px; padding:0 14px 0 8px; font-size:12.5px; font-weight:700; color:var(--green-2); border-right:1px solid #232f49; margin-right:4px;}
+.menu-dropdown{position:absolute; top:100%; left:0; min-width:250px; background:#fff; border-radius:0 0 10px 10px; box-shadow:0 20px 44px rgba(0,0,0,.32); display:none; z-index:90; overflow:hidden; border:1px solid var(--border-card); border-top:none;}
+.menu-dropdown.active{display:block;}
+.menu-row{display:flex; justify-content:space-between; align-items:center; padding:10px 16px; font-size:12.8px; font-weight:600; color:var(--text-menu); cursor:pointer; gap:16px;}
+.menu-row:hover{background:var(--bg); color:var(--green);}
+.menu-row .mkbd{font-size:10px; color:var(--text-secondary); font-family:'JetBrains Mono',monospace; background:var(--bg); padding:2px 6px; border-radius:5px; border:1px solid var(--border-chart);}
+.menu-row:hover .mkbd{color:var(--green); border-color:var(--green);}
+.menu-sep{height:1px; background:var(--border-card); margin:4px 0;}
+
+/* ============ APP LAYOUT ============ */
+.app{flex:1; min-height:0; display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:264px; min-width:264px; background:var(--dark-deep); color:#e2e8f0; display:flex; flex-direction:column; height:100%; transition:width .25s ease; position:relative; z-index:40;}
+.sidebar.collapsed{width:76px; min-width:76px;}
+.brand{display:flex; align-items:center; gap:11px; padding:18px 20px; border-bottom:1px solid #1a2436;}
+.brand-mark{width:38px; height:38px; border-radius:11px; flex-shrink:0; background:linear-gradient(135deg,var(--green),#0891b2); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:14px; box-shadow:0 4px 14px rgba(16,185,129,.35);}
+.brand-text{white-space:nowrap; overflow:hidden;}
+.brand-text b{font-size:16px; color:#fff; letter-spacing:.2px; display:block;}
+.brand-text span{display:block; font-size:9.2px; color:#5b6b85; letter-spacing:1.8px; margin-top:2px;}
+.sidebar.collapsed .brand-text{display:none;}
+
+.sys-status{margin:11px 16px 0; padding:8px 12px; background:rgba(16,185,129,.09); border:1px solid rgba(16,185,129,.25); border-radius:10px; display:flex; align-items:center; gap:8px; font-size:10.6px; color:var(--green-2);}
+.sys-status .dot{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 0 3px rgba(16,185,129,.25); flex-shrink:0;}
+.sidebar.collapsed .sys-status{display:none;}
+
+.nav{flex:1; overflow-y:auto; padding:12px 12px;}
+.nav-item{display:flex; align-items:center; gap:11px; padding:9px 11px; border-radius:10px; color:#8b96a8; cursor:pointer; font-size:13px; font-weight:500; margin-bottom:2px; white-space:nowrap; overflow:hidden; position:relative; transition:background .12s, color .12s;}
+.nav-item i{width:17px; height:17px; flex-shrink:0;}
+.nav-item:hover{background:#141d30; color:#e2e8f0;}
+.nav-item.active{background:rgba(16,185,129,.13); color:var(--green-2); font-weight:600;}
+.nav-item.active::before{content:''; position:absolute; left:-12px; top:8px; bottom:8px; width:3px; border-radius:3px; background:var(--green);}
+.nav-label{overflow:hidden; text-overflow:ellipsis; flex:1;}
+.nav-chip{font-size:9.2px; font-weight:700; background:var(--red); color:#fff; border-radius:20px; padding:1px 6px;}
+.nav-kbd{font-size:9px; color:#57667e; font-family:'JetBrains Mono',monospace; flex-shrink:0;}
+.sidebar.collapsed .nav-label,.sidebar.collapsed .nav-chip,.sidebar.collapsed .nav-kbd{display:none;}
+.nav-section-title{font-size:9.6px; text-transform:uppercase; letter-spacing:1.5px; color:#3d4a61; padding:15px 11px 6px; font-weight:700;}
+.sidebar.collapsed .nav-section-title{display:none;}
+
+.sidebar-footer{padding:13px; border-top:1px solid #1a2436;}
+.collapse-btn{width:100%; background:#111a2e; border:1px solid #1c2b45; color:#8b96a8; padding:9px; border-radius:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; font-size:11px; font-weight:600;}
+.collapse-btn:hover{color:#fff; border-color:var(--green);}
+
+/* MAIN */
+.main{flex:1; display:flex; flex-direction:column; height:100%; overflow:hidden; min-width:0;}
+.topbar{height:64px; min-height:64px; background:var(--card); border-bottom:1px solid var(--border-card); display:flex; align-items:center; justify-content:space-between; padding:0 26px; position:relative; z-index:30;}
+.topbar-left{display:flex; align-items:center; gap:16px;}
+.breadcrumb{font-size:10.8px; color:var(--text-secondary); font-weight:600; letter-spacing:.3px;}
+.page-title{font-size:19px; font-weight:700; color:var(--text-primary); letter-spacing:-.2px;}
+
+.global-search{position:relative; width:280px;}
+.search-box{display:flex; align-items:center; gap:8px; background:var(--bg); border:1px solid var(--border-card); padding:8px 13px; border-radius:10px; color:var(--text-secondary); transition:border-color .15s;}
+.search-box:focus-within{border-color:var(--green);}
+.search-box input{border:none; background:transparent; outline:none; font-size:12.8px; width:100%; color:var(--text-main);}
+.kbd{font-size:10px; background:#fff; border:1px solid var(--border-chart); border-radius:5px; padding:1px 6px; color:var(--text-secondary); font-weight:600; font-family:'JetBrains Mono',monospace;}
+.search-results{position:absolute; top:calc(100% + 8px); left:0; right:0; background:#fff; border:1px solid var(--border-card); border-radius:12px; box-shadow:0 16px 40px rgba(15,23,42,.14); max-height:340px; overflow-y:auto; display:none; z-index:60;}
+.search-results.active{display:block;}
+.sr-group-title{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-secondary); font-weight:700; padding:10px 14px 4px;}
+.sr-item{display:flex; align-items:center; gap:10px; padding:9px 14px; cursor:pointer;}
+.sr-item:hover{background:var(--bg);}
+.sr-icon{width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.sr-name{font-size:12.5px; font-weight:600; color:var(--text-primary);}
+.sr-sub{font-size:10.5px; color:var(--text-secondary);}
+.sr-empty{padding:24px; text-align:center; font-size:12px; color:var(--text-secondary);}
+
+.topbar-right{display:flex; align-items:center; gap:13px;}
+.icon-btn{width:39px; height:39px; border-radius:11px; background:var(--bg); border:1px solid var(--border-card); display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; color:var(--text-menu); transition:border-color .15s;}
+.icon-btn:hover{border-color:var(--green); color:var(--green);}
+.badge-dot{position:absolute; top:-4px; right:-4px; background:var(--red); color:#fff; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff;}
+.dropdown-anchor{position:relative;}
+.dropdown-panel{position:absolute; top:calc(100% + 10px); right:0; width:330px; background:#fff; border:1px solid var(--border-card); border-radius:14px; box-shadow:0 20px 48px rgba(15,23,42,.16); display:none; z-index:70; overflow:hidden;}
+.dropdown-panel.left{left:0; right:auto;}
+.dropdown-panel.active{display:block;}
+.dropdown-head{padding:13px 18px; border-bottom:1px solid var(--border-card); display:flex; justify-content:space-between; align-items:center;}
+.dropdown-head b{font-size:13px; color:var(--text-primary);}
+.dropdown-head a{font-size:11px; color:var(--green); font-weight:700; cursor:pointer;}
+.notif-item{display:flex; gap:11px; padding:11px 18px; border-bottom:1px solid var(--border-card); cursor:pointer;}
+.notif-item:hover{background:var(--bg);}
+.notif-item:last-child{border-bottom:none;}
+.notif-dot-ic{width:33px; height:33px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.notif-title{font-size:12px; font-weight:600; color:var(--text-primary); line-height:1.4;}
+.notif-time{font-size:10.3px; color:var(--text-secondary); margin-top:2px;}
+.profile-panel .p-head{padding:16px 18px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--border-card);}
+.profile-menu-item{display:flex; align-items:center; gap:11px; padding:10px 18px; font-size:12.6px; font-weight:600; color:var(--text-menu); cursor:pointer;}
+.profile-menu-item:hover{background:var(--bg); color:var(--text-primary);}
+.profile-menu-item.danger{color:var(--red);}
+
+.user-chip{display:flex; align-items:center; gap:9px; padding-left:13px; border-left:1px solid var(--border-card); cursor:pointer;}
+.avatar{width:37px; height:37px; border-radius:11px; background:linear-gradient(135deg,var(--green),#059669); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12.5px; flex-shrink:0;}
+.user-chip .name{font-size:12.6px; font-weight:700; color:var(--text-primary);}
+.user-chip .role{font-size:10.3px; color:var(--text-secondary);}
+
+.content{flex:1; overflow-y:auto; padding:22px 26px 40px;}
+.view-enter{animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(7px);} to{opacity:1; transform:translateY(0);}}
+
+/* ============ STATUS BAR ============ */
+.statusbar{
+  height:30px; min-height:30px; background:var(--dark-deep); color:#8b96a8; display:flex; align-items:center;
+  justify-content:space-between; padding:0 16px; font-size:11px; border-top:1px solid #050810; z-index:80;
+}
+.statusbar .sb-left{display:flex; align-items:center; gap:16px;}
+.statusbar .sb-left span{display:flex; align-items:center; gap:6px;}
+.statusbar .sb-left b{color:#cbd5e1;}
+.statusbar .sb-kbds{display:flex; align-items:center; gap:10px;}
+.statusbar .fk{display:flex; align-items:center; gap:4px; color:#64748b;}
+.statusbar .fk b{background:#1c2740; color:#e2e8f0; font-family:'JetBrains Mono',monospace; font-size:9.8px; padding:1px 6px; border-radius:4px; border:1px solid #2a3752;}
+.statusbar .sb-clock{font-family:'JetBrains Mono',monospace; color:var(--green-2); font-weight:600;}
+
+/* ============ GENERIC ============ */
+.card{background:var(--card); border:1px solid var(--border-card); border-radius:18px; padding:22px; box-shadow:0 1px 2px rgba(15,23,42,.02);}
+.grid{display:grid; gap:18px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:1.6fr 1fr;}
+.grid-2{grid-template-columns:1fr 1fr;}
+@media(max-width:1250px){.grid-4{grid-template-columns:repeat(2,1fr);} .grid-3,.grid-2{grid-template-columns:1fr;}}
+
+.stat-card{border-radius:18px; padding:19px 21px; border:1px solid var(--border-card); position:relative; overflow:hidden; background:linear-gradient(160deg,#ffffff 0%, var(--tint) 120%); cursor:default;}
+.stat-card .top{display:flex; justify-content:space-between; align-items:flex-start;}
+.stat-icon{width:41px; height:41px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,.75);}
+.stat-spark{width:74px; height:32px;}
+.stat-label{font-size:12px; color:var(--text-secondary); font-weight:600; margin-top:15px;}
+.stat-value{font-size:26px; font-weight:700; color:var(--text-primary); margin-top:3px; letter-spacing:-.5px;}
+.stat-delta{font-size:11px; font-weight:700; margin-top:9px; display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px;}
+.stat-delta.up{color:var(--green); background:rgba(16,185,129,.14);}
+.stat-delta.down{color:var(--red); background:rgba(239,68,68,.14);}
+
+.section-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; gap:12px; flex-wrap:wrap;}
+.section-title{font-size:15px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;}
+.pill-btn{border:1px solid var(--border-chart); background:var(--card); color:var(--text-menu); font-size:11.8px; font-weight:600; padding:8px 13px; border-radius:9px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition:all .12s;}
+.pill-btn:hover{border-color:var(--green); color:var(--green); background:rgba(16,185,129,.05);}
+.pill-btn.primary{background:var(--green); border-color:var(--green); color:#fff;}
+.pill-btn.primary:hover{background:#0da271; color:#fff;}
+.pill-btn.dark{background:var(--dark-deep); border-color:var(--dark-deep); color:#fff;}
+.pill-btn.dark:hover{background:#1a2436; color:#fff;}
+.pill-btn.danger{color:var(--red);}
+.pill-btn.danger:hover{border-color:var(--red); background:rgba(239,68,68,.05);}
+.pill-btn:disabled{opacity:.45; cursor:not-allowed;}
+.split-btn{position:relative; display:inline-flex;}
+.split-btn .pill-btn.primary{border-radius:9px 0 0 9px; border-right:1px solid rgba(255,255,255,.3);}
+.split-btn .split-chevron{border-radius:0 9px 9px 0; border-left:none; padding:8px 9px;}
+
+.table-wrap{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:12.8px;}
+thead th{text-align:left; padding:10px 13px; color:var(--text-secondary); font-weight:700; font-size:10.6px; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid var(--border-chart); white-space:nowrap;}
+tbody td{padding:11px 13px; border-bottom:1px solid var(--border-card); color:var(--text-main); white-space:nowrap;}
+tbody tr{transition:background .1s;}
+tbody tr:hover{background:#fafbfc;}
+.tag{padding:3px 10px; border-radius:20px; font-size:10.8px; font-weight:700; display:inline-block;}
+.tag.green{background:rgba(16,185,129,.13); color:var(--green);}
+.tag.red{background:rgba(239,68,68,.13); color:var(--red);}
+.tag.yellow{background:#fef9c3; color:#a16207;}
+.tag.grey{background:#f1f5f9; color:var(--text-secondary);}
+.tag.blue{background:#e0f2fe; color:#0369a1;}
+.row-actions{display:flex; gap:6px;}
+.icon-sm{width:28px; height:28px; border-radius:8px; border:1px solid var(--border-chart); background:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text-secondary); transition:all .12s;}
+.icon-sm:hover{border-color:var(--green); color:var(--green); background:rgba(16,185,129,.06);}
+
+.tabs{display:flex; gap:4px; background:var(--bg); padding:4px; border-radius:11px; width:fit-content; overflow-x:auto; max-width:100%;}
+.tab{padding:8px 15px; border-radius:8px; font-size:12px; font-weight:600; color:var(--text-secondary); cursor:pointer; white-space:nowrap;}
+.tab.active{background:var(--card); color:var(--text-primary); box-shadow:0 1px 4px rgba(0,0,0,.09);}
+
+.empty-state{display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; color:var(--text-secondary); gap:9px; text-align:center;}
+.empty-state i{opacity:.35;}
+.empty-state b{color:var(--text-primary); font-size:13px;}
+.empty-state span{font-size:11.3px;}
+
+.chart-box{position:relative; height:260px;}
+.chart-box.sm{height:205px;}
+
+.progress-bar{height:7px; background:var(--border-card); border-radius:6px; overflow:hidden; margin-top:6px;}
+.progress-bar span{display:block; height:100%; background:var(--green); border-radius:6px; transition:width .4s;}
+
+.list-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-card); gap:10px;}
+.list-row:last-child{border-bottom:none;}
+.list-left{display:flex; align-items:center; gap:12px; min-width:0;}
+.list-icon{width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.list-name{font-size:12.6px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.list-sub{font-size:10.8px; color:var(--text-secondary);}
+
+.perm-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:10px;}
+.perm-cell{text-align:center; font-size:10.8px; color:var(--text-secondary); padding:9px 6px; border-radius:10px; background:var(--bg); font-weight:600;}
+.perm-cell input{margin-bottom:5px;}
+
+.backup-box{border:2px dashed var(--border-chart); border-radius:18px; padding:40px 20px; text-align:center;}
+.kpi-strip{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;}
+.kpi-chip{background:var(--bg); border:1px solid var(--border-card); border-radius:10px; padding:8px 12px; font-size:11.2px; color:var(--text-menu); font-weight:600;}
+.kpi-chip b{color:var(--text-primary);}
+
+/* BILLING */
+.pos-layout{display:grid; grid-template-columns:1.55fr 1fr; gap:18px; height:calc(100vh - 210px);}
+.pos-left{display:flex; flex-direction:column; gap:13px; overflow:hidden;}
+.pos-search{display:flex; gap:10px;}
+.pos-search .search-box{flex:1; width:auto;}
+.category-scroll{display:flex; gap:8px; overflow-x:auto; padding-bottom:2px;}
+.cat-chip{padding:7px 15px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; border:1px solid var(--border-chart); color:var(--text-menu); background:#fff; transition:all .12s;}
+.cat-chip.active{background:var(--green); color:#fff; border-color:var(--green);}
+.product-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; overflow-y:auto; padding:4px 4px 20px;}
+.product-card{background:var(--card); border:1px solid var(--border-card); border-radius:15px; padding:14px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, border-color .12s;}
+.product-card:hover, .product-card.kbd-focus{transform:translateY(-3px); box-shadow:0 10px 24px rgba(15,23,42,.09); border-color:var(--green);}
+.product-card .icon{width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; margin-bottom:10px;}
+.product-card .pname{font-weight:700; font-size:12.6px; color:var(--text-primary); line-height:1.3;}
+.product-card .pmeta{font-size:10.6px; color:var(--text-secondary); margin-top:3px;}
+.product-card .pfoot{display:flex; justify-content:space-between; align-items:center; margin-top:10px;}
+.product-card .pprice{font-weight:800; color:var(--text-primary); font-size:14px;}
+.product-card .pstock{font-size:9.8px; padding:2px 7px; border-radius:10px; font-weight:700;}
+
+.pos-right{background:var(--card); border:1px solid var(--border-card); border-radius:18px; display:flex; flex-direction:column; overflow:hidden;}
+.cart-tabs{display:flex; border-bottom:1px solid var(--border-card);}
+.cart-tab{flex:1; text-align:center; padding:13px 4px; font-size:12px; font-weight:700; color:var(--text-secondary); cursor:pointer; position:relative;}
+.cart-tab.active{color:var(--green);}
+.cart-tab.active::after{content:''; position:absolute; bottom:-1px; left:20%; right:20%; height:2.5px; background:var(--green); border-radius:3px;}
+.customer-select{padding:11px 17px; border-bottom:1px solid var(--border-card); display:flex; gap:8px; align-items:center;}
+.customer-select select, .customer-select input{flex:1; border:1px solid var(--border-chart); border-radius:9px; padding:8px 10px; font-size:12px; outline:none; color:var(--text-main);}
+.cart-items{flex:1; overflow-y:auto; padding:6px 13px;}
+.cart-item{display:flex; align-items:center; gap:10px; padding:10px 6px; border-bottom:1px solid var(--border-card);}
+.cart-item .ci-icon{width:32px; height:32px; border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+.cart-item .ci-name{font-size:12.2px; font-weight:600; color:var(--text-primary);}
+.cart-item .ci-meta{font-size:10.3px; color:var(--text-secondary);}
+.qty-control{display:flex; align-items:center; gap:6px; border:1px solid var(--border-chart); border-radius:8px; padding:2px;}
+.qty-control button{width:22px; height:22px; border:none; background:transparent; cursor:pointer; color:var(--text-menu); font-weight:700; border-radius:6px;}
+.qty-control button:hover{background:var(--bg);}
+.qty-control span{font-size:11.6px; font-weight:700; min-width:16px; text-align:center;}
+.ci-price{font-size:12.2px; font-weight:700; color:var(--text-primary); min-width:60px; text-align:right;}
+.ci-remove{color:var(--text-secondary); cursor:pointer;}
+.ci-remove:hover{color:var(--red);}
+
+.cart-summary{border-top:1px solid var(--border-card); padding:15px 17px; background:#fcfcfd;}
+.sum-row{display:flex; justify-content:space-between; font-size:12.2px; color:var(--text-menu); margin-bottom:7px;}
+.sum-row.total{font-size:16.5px; font-weight:800; color:var(--text-primary); margin-top:9px; padding-top:9px; border-top:1px dashed var(--border-chart);}
+.discount-row{display:flex; gap:8px; margin-bottom:9px;}
+.discount-row input{flex:1; border:1px solid var(--border-chart); border-radius:9px; padding:7px 10px; font-size:11.6px; outline:none;}
+.pay-methods{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:11px 0;}
+.pay-method{border:1px solid var(--border-chart); border-radius:11px; padding:9px 4px; text-align:center; cursor:pointer; font-size:10.8px; font-weight:700; color:var(--text-menu); transition:all .12s;}
+.pay-method.active{border-color:var(--green); background:rgba(16,185,129,.08); color:var(--green);}
+.pay-method i{display:block; margin:0 auto 4px;}
+.action-row{display:flex; gap:8px; margin-bottom:9px;}
+.action-row button{flex:1;}
+.checkout-btn{width:100%; background:var(--green); color:#fff; border:none; padding:13px; border-radius:11px; font-size:13.5px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .12s;}
+.checkout-btn:hover{background:#0da271;}
+.checkout-btn:disabled{background:#cbd5e1; cursor:not-allowed;}
+.held-card,.recent-card{border:1px solid var(--border-card); border-radius:12px; padding:12px 14px; margin:10px 13px 0;}
+.held-card .hc-top{display:flex; justify-content:space-between; font-size:12.2px; font-weight:700; color:var(--text-primary);}
+.held-card .hc-sub{font-size:10.6px; color:var(--text-secondary); margin-top:2px;}
+.held-card .hc-actions{display:flex; gap:8px; margin-top:9px;}
+
+/* MODALS */
+.modal-overlay{position:fixed; inset:0; background:rgba(15,23,42,.55); display:none; align-items:center; justify-content:center; z-index:100; backdrop-filter:blur(3px);}
+.modal-overlay.active{display:flex;}
+.modal{background:#fff; border-radius:20px; width:440px; max-width:92vw; max-height:88vh; overflow-y:auto; padding:0; box-shadow:0 30px 80px rgba(0,0,0,.28);}
+.modal.wide{width:680px;}
+.modal-head{padding:19px 23px; border-bottom:1px solid var(--border-card); display:flex; justify-content:space-between; align-items:center;}
+.modal-head h3{font-size:16px; color:var(--text-primary);}
+.modal-body{padding:23px;}
+.modal-foot{padding:15px 23px; border-top:1px solid var(--border-card); display:flex; justify-content:flex-end; gap:10px;}
+.close-x{cursor:pointer; color:var(--text-secondary); width:33px; height:33px; display:flex; align-items:center; justify-content:center; border-radius:9px;}
+.close-x:hover{background:var(--bg); color:var(--text-primary);}
+
+.invoice-box{border:1px dashed var(--border-chart); border-radius:14px; padding:21px;}
+.invoice-brand{text-align:center; margin-bottom:13px;}
+.invoice-brand b{font-size:18px; color:var(--text-primary);}
+.invoice-brand div{font-size:10.8px; color:var(--text-secondary); margin-top:2px;}
+.invoice-meta{display:flex; justify-content:space-between; font-size:11.3px; color:var(--text-secondary); margin:11px 0; padding-bottom:9px; border-bottom:1px solid var(--border-card);}
+.invoice-table{width:100%; font-size:11.8px; margin-bottom:9px;}
+.invoice-table th{text-align:left; padding:6px 0; color:var(--text-secondary); border-bottom:1px solid var(--border-card); font-size:10.2px; text-transform:uppercase;}
+.invoice-table td{padding:6px 0; color:var(--text-main);}
+.success-check{width:64px; height:64px; border-radius:50%; background:rgba(16,185,129,.13); color:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 13px;}
+
+.form-row{margin-bottom:14px;}
+.form-row label{display:block; font-size:11.6px; font-weight:700; color:var(--text-menu); margin-bottom:6px;}
+.form-row input, .form-row select, .form-row textarea{width:100%; border:1px solid var(--border-chart); border-radius:10px; padding:9px 12px; font-size:12.6px; outline:none; color:var(--text-main); font-family:inherit;}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus{border-color:var(--green);}
+.form-grid-2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px;}
+
+.toast-wrap{position:fixed; bottom:40px; right:24px; z-index:200; display:flex; flex-direction:column; gap:10px;}
+.toast{background:var(--dark-deep); color:#fff; padding:13px 17px; border-radius:13px; font-size:12.6px; display:flex; align-items:center; gap:10px; box-shadow:0 14px 34px rgba(0,0,0,.3); min-width:260px;}
+.toast i{color:var(--green-2); flex-shrink:0;}
+
+.kbd-help-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 20px;}
+.kbd-help-row{display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border-card); font-size:12.4px; color:var(--text-menu);}
+
+@media(max-width:1024px){.pos-layout{grid-template-columns:1fr;} .global-search{display:none;}}
+</style>
+</head>
+<body>
+
+<div class="page-shell">
+  <!-- CLASSIC MENU BAR -->
+  <div class="menubar" id="menubar"></div>
+
+  <div class="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">NX</div>
+        <div class="brand-text"><b>NXTGEN ERP</b><span>DISTRIBUTOR EDITION</span></div>
+      </div>
+      <div class="sys-status"><span class="dot"></span> All systems operational</div>
+      <nav class="nav" id="navList"></nav>
+      <div class="sidebar-footer">
+        <button class="collapse-btn" onclick="toggleSidebar()"><i data-lucide="panel-left-close" style="width:15px;height:15px;"></i> <span id="collapseLabel">Collapse Menu (F4)</span></button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div>
+            <div class="breadcrumb" id="breadcrumb">Home / Dashboard</div>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+          </div>
+        </div>
+        <div class="global-search">
+          <div class="search-box">
+            <i data-lucide="search" style="width:15px;height:15px;"></i>
+            <input id="globalSearch" placeholder="Search products, retailers, suppliers..." oninput="handleGlobalSearch()" onfocus="handleGlobalSearch()">
+            <span class="kbd">F3</span>
+          </div>
+          <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="topbar-right">
+          <div class="dropdown-anchor">
+            <div class="icon-btn" title="Notifications" onclick="toggleDropdown('notifPanel')"><i data-lucide="bell" style="width:17px;height:17px;"></i><span class="badge-dot" id="notifBadge">5</span></div>
+            <div class="dropdown-panel" id="notifPanel">
+              <div class="dropdown-head"><b>Notifications</b><a onclick="clearNotifs()">Mark all read</a></div>
+              <div id="notifList"></div>
+            </div>
+          </div>
+          <div class="icon-btn" title="Keyboard Shortcuts (F1)" onclick="openHelpModal()"><i data-lucide="keyboard" style="width:17px;height:17px;"></i></div>
+          <div class="dropdown-anchor">
+            <div class="user-chip" onclick="toggleDropdown('profilePanel')">
+              <div class="avatar">AR</div>
+              <div><div class="name">Aditi Rao</div><div class="role">Admin</div></div>
+              <i data-lucide="chevron-down" style="width:13px;height:13px;color:var(--text-secondary);"></i>
+            </div>
+            <div class="dropdown-panel profile-panel" id="profilePanel">
+              <div class="p-head"><div class="avatar">AR</div><div><div class="name" style="font-size:13px;font-weight:700;color:var(--text-primary);">Aditi Rao</div><div class="list-sub">aditi.rao@nxtgen.com</div></div></div>
+              <div class="profile-menu-item" onclick="switchView('security')"><i data-lucide="user" style="width:15px;height:15px;"></i> My Profile</div>
+              <div class="profile-menu-item" onclick="switchView('security')"><i data-lucide="settings" style="width:15px;height:15px;"></i> Settings</div>
+              <div class="profile-menu-item" onclick="toast('Switched to Pharmacist view')"><i data-lucide="repeat" style="width:15px;height:15px;"></i> Switch Role</div>
+              <div class="profile-menu-item danger" onclick="toast('Signed out — see you soon!','log-out')"><i data-lucide="log-out" style="width:15px;height:15px;"></i> Sign Out</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-left">
+      <span><i data-lucide="building-2" style="width:12px;height:12px;"></i> <b>NXTGEN Distributors Pvt. Ltd.</b></span>
+      <span>FY 2026-27</span>
+      <span>User: <b>Aditi Rao (Admin)</b></span>
+      <span id="currentModuleLabel">Module: Dashboard</span>
+    </div>
+    <div class="sb-kbds">
+      <span class="fk"><b>F1</b>Help</span>
+      <span class="fk"><b>F2</b>New</span>
+      <span class="fk"><b>F3</b>Search</span>
+      <span class="fk"><b>F4</b>Menu</span>
+      <span class="fk"><b>F5</b>Refresh</span>
+      <span class="fk"><b>F6</b>Billing</span>
+      <span class="fk"><b>F9</b>Save</span>
+      <span class="fk"><b>Esc</b>Close</span>
+      <span class="sb-clock" id="clock">--:--:--</span>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoiceModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Sale Completed</h3><div class="close-x" onclick="closeModal('invoiceModal')"><i data-lucide="x" style="width:18px;height:18px;"></i></div></div>
+    <div class="modal-body">
+      <div class="success-check"><i data-lucide="check" style="width:30px;height:30px;"></i></div>
+      <div class="invoice-box" id="invoiceContent"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="pill-btn" onclick="downloadInvoice()"><i data-lucide="download" style="width:13px;height:13px;"></i> Download</button>
+      <button class="pill-btn" onclick="closeModal('invoiceModal')">Close</button>
+      <button class="pill-btn primary" onclick="printInvoice()"><i data-lucide="printer" style="width:13px;height:13px;"></i> Print Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC FORM MODAL -->
+<div class="modal-overlay" id="formModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3 id="formModalTitle">Add Record</h3><div class="close-x" onclick="closeModal('formModal')"><i data-lucide="x" style="width:18px;height:18px;"></i></div></div>
+    <div class="modal-body" id="formModalBody"></div>
+    <div class="modal-foot">
+      <button class="pill-btn" onclick="closeModal('formModal')">Cancel</button>
+      <button class="pill-btn primary" onclick="submitFormModal()"><i data-lucide="save" style="width:13px;height:13px;"></i> Save (F9)</button>
+    </div>
+  </div>
+</div>
+
+<!-- KEYBOARD HELP MODAL -->
+<div class="modal-overlay" id="helpModal">
+  <div class="modal wide">
+    <div class="modal-head"><h3>Keyboard Shortcuts</h3><div class="close-x" onclick="closeModal('helpModal')"><i data-lucide="x" style="width:18px;height:18px;"></i></div></div>
+    <div class="modal-body">
+      <div class="kbd-help-grid">
+        <div class="kbd-help-row"><span>Show this help</span><span class="kbd">F1</span></div>
+        <div class="kbd-help-row"><span>New record (context-aware)</span><span class="kbd">F2</span></div>
+        <div class="kbd-help-row"><span>Focus global search</span><span class="kbd">F3 / /</span></div>
+        <div class="kbd-help-row"><span>Collapse / expand side menu</span><span class="kbd">F4</span></div>
+        <div class="kbd-help-row"><span>Refresh current screen</span><span class="kbd">F5</span></div>
+        <div class="kbd-help-row"><span>Jump to Sales / Billing</span><span class="kbd">F6</span></div>
+        <div class="kbd-help-row"><span>Save / Complete Sale</span><span class="kbd">F9</span></div>
+        <div class="kbd-help-row"><span>Close modal / menu</span><span class="kbd">Esc</span></div>
+        <div class="kbd-help-row"><span>Dashboard</span><span class="kbd">Ctrl+1</span></div>
+        <div class="kbd-help-row"><span>Product Master</span><span class="kbd">Ctrl+2</span></div>
+        <div class="kbd-help-row"><span>Inventory</span><span class="kbd">Ctrl+3</span></div>
+        <div class="kbd-help-row"><span>Sales / Billing</span><span class="kbd">Ctrl+4</span></div>
+        <div class="kbd-help-row"><span>Purchase</span><span class="kbd">Ctrl+5</span></div>
+        <div class="kbd-help-row"><span>Supplier Management</span><span class="kbd">Ctrl+6</span></div>
+        <div class="kbd-help-row"><span>Retailer / Customer Mgmt</span><span class="kbd">Ctrl+7</span></div>
+        <div class="kbd-help-row"><span>Reports</span><span class="kbd">Ctrl+8</span></div>
+        <div class="kbd-help-row"><span>User & Security</span><span class="kbd">Ctrl+9</span></div>
+        <div class="kbd-help-row"><span>Backup</span><span class="kbd">Ctrl+0</span></div>
+        <div class="kbd-help-row"><span>Add product to cart in Billing</span><span class="kbd">Enter</span></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="pill-btn primary" onclick="closeModal('helpModal')">Got it</button></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   NXTGEN ERP — Distributor Management Suite
+========================================================= */
+
+/* ---------- DUMMY DATA ---------- */
+const medicines = [
+  {id:'MED001', name:'Paracetamol 500mg', generic:'Paracetamol', brand:'Calpol', batch:'B2201', mrp:35, purchase:22, gst:12, mfr:'GSK', hsn:'3004', stock:4200, reorder:1000, expiry:'2027-03-01', cat:'Tablets', sold:9200},
+  {id:'MED002', name:'Amoxicillin 250mg', generic:'Amoxicillin', brand:'Mox', batch:'B1187', mrp:85, purchase:52, gst:12, mfr:'Cipla', hsn:'3004', stock:380, reorder:500, expiry:'2026-09-15', cat:'Capsules', sold:4100},
+  {id:'MED003', name:'Cough Syrup 100ml', generic:'Dextromethorphan', brand:'Benadryl', batch:'B0765', mrp:120, purchase:78, gst:12, mfr:'J&J', hsn:'3004', stock:140, reorder:300, expiry:'2026-08-05', cat:'Syrups', sold:2650},
+  {id:'MED004', name:'Vitamin C 500mg', generic:'Ascorbic Acid', brand:'Limcee', mfr:'Abbott', batch:'B3321', mrp:45, purchase:26, gst:5, hsn:'2936', stock:6100, reorder:1500, expiry:'2027-11-20', cat:'Tablets', sold:11800},
+  {id:'MED005', name:'Insulin Glargine', generic:'Insulin', brand:'Lantus', mfr:'Sanofi', batch:'B4432', mrp:850, purchase:640, gst:5, hsn:'3004', stock:90, reorder:200, expiry:'2026-08-01', cat:'Injections', sold:880},
+  {id:'MED006', name:'Antacid Gel 200ml', generic:'Aluminium Hydroxide', brand:'Digene', mfr:'Abbott', batch:'B5541', mrp:95, purchase:60, gst:12, hsn:'3004', stock:2200, reorder:600, expiry:'2027-01-10', cat:'Syrups', sold:3400},
+  {id:'MED007', name:'Cetirizine 10mg', generic:'Cetirizine', brand:'Zyrtec', mfr:'UCB', batch:'B6621', mrp:28, purchase:16, gst:12, hsn:'3004', stock:3400, reorder:800, expiry:'2027-05-18', cat:'Tablets', sold:7900},
+  {id:'MED008', name:'ORS Sachet', generic:'Electrolyte', brand:'Electral', mfr:'FDC', batch:'B7712', mrp:20, purchase:11, gst:5, hsn:'3004', stock:5000, reorder:1200, expiry:'2027-12-01', cat:'Sachets', sold:10500},
+  {id:'MED009', name:'Pain Relief Spray', generic:'Diclofenac', brand:'Volini', mfr:'Sun Pharma', batch:'B8891', mrp:180, purchase:120, gst:18, hsn:'3004', stock:600, reorder:400, expiry:'2026-07-30', cat:'Topical', sold:2050},
+  {id:'MED010', name:'Multivitamin Caps', generic:'Multivitamin', brand:'Revital', mfr:'Ranbaxy', batch:'B9911', mrp:210, purchase:150, gst:18, hsn:'2936', stock:1500, reorder:500, expiry:'2027-06-25', cat:'Capsules', sold:6100},
+  {id:'MED011', name:'BP Monitor Strip', generic:'Diagnostic', brand:'Accu-Chek', mfr:'Roche', batch:'B1002', mrp:650, purchase:480, gst:12, hsn:'9018', stock:250, reorder:150, expiry:'2028-01-01', cat:'Devices', sold:520},
+  {id:'MED012', name:'N95 Mask (Box)', generic:'PPE', brand:'3M', mfr:'3M', batch:'B1120', mrp:399, purchase:250, gst:12, hsn:'6307', stock:800, reorder:300, expiry:'2028-05-01', cat:'PPE', sold:1400},
+];
+
+const catIcons = {
+  Tablets:{icon:'pill', bg:'var(--p-cyan)', color:'#0891b2'}, Capsules:{icon:'circle-dot', bg:'var(--p-purple)', color:'#9333ea'},
+  Syrups:{icon:'flask-conical', bg:'var(--p-orange)', color:'#ea580c'}, Injections:{icon:'syringe', bg:'var(--p-yellow)', color:'#ca8a04'},
+  Sachets:{icon:'package', bg:'var(--p-green)', color:'#65a30d'}, Topical:{icon:'droplet', bg:'var(--p-cyan)', color:'#0891b2'},
+  Devices:{icon:'stethoscope', bg:'var(--p-purple)', color:'#9333ea'}, PPE:{icon:'shield', bg:'var(--p-green)', color:'#65a30d'},
+};
+
+/* Retailers (buyers of the distributor) */
+const customers = [
+  {id:'C001', name:'Shree Ganesh Medical Store', phone:'98220 11223', city:'Pune', credit:12400, type:'Credit', points:180, gstin:'27ABCDR1234F1Z1'},
+  {id:'C002', name:'Wellness Retail Pharmacy', phone:'99870 44551', city:'Pune', credit:0, type:'Loyalty', points:640, gstin:'27WELLR9988K1Z2'},
+  {id:'C003', name:'Sunil Traders & Chemist', phone:'90210 88765', city:'Mumbai', credit:45200, type:'Credit', points:40, gstin:'27SUNTR1122H1Z4'},
+  {id:'C004', name:'Anjali Health Mart', phone:'98765 22110', city:'Nashik', credit:0, type:'Regular', points:95, gstin:'27ANJLM3344G1Z9'},
+  {id:'C005', name:'City Care Pharmacy', phone:'98111 22334', city:'Pune', credit:8600, type:'Credit', points:210, gstin:'27CITYC5566K1Z3'},
+];
+
+/* Suppliers (manufacturers/companies supplying the distributor) */
+const suppliers = [
+  {id:'S001', name:'GSK Pharmaceuticals Ltd', phone:'020-4455667', outstanding:452000, gst:'27GSKPL1234F1Z5', lastOrder:'2026-07-18'},
+  {id:'S002', name:'Cipla Ltd', phone:'022-2233445', outstanding:128000, gst:'27CIPLA9988K1Z2', lastOrder:'2026-07-15'},
+  {id:'S003', name:'Sun Pharmaceutical Industries', phone:'011-6677889', outstanding:0, gst:'07SUNPH4567G1Z9', lastOrder:'2026-07-10'},
+  {id:'S004', name:'3M Healthcare India', phone:'044-9988776', outstanding:96000, gst:'33M3MHC1122H1Z4', lastOrder:'2026-06-29'},
+];
+
+const supplierInvoices = [
+  {id:'SINV-9001', supplier:'GSK Pharmaceuticals Ltd', amount:184000, date:'2026-07-18', status:'Paid'},
+  {id:'SINV-9002', supplier:'Cipla Ltd', amount:76200, date:'2026-07-15', status:'Due'},
+  {id:'SINV-9003', supplier:'Sun Pharmaceutical Industries', amount:212000, date:'2026-07-10', status:'Paid'},
+  {id:'SINV-9004', supplier:'3M Healthcare India', amount:48000, date:'2026-06-29', status:'Due'},
+  {id:'SINV-9005', supplier:'GSK Pharmaceuticals Ltd', amount:96500, date:'2026-06-12', status:'Paid'},
+];
+
+const supplierGSTData = [
+  {supplier:'GSK Pharmaceuticals Ltd', gstin:'27GSKPL1234F1Z5', filingStatus:'Filed', lastFiled:'GSTR-1 · Jun 2026', itcClaimed:'₹54,240'},
+  {supplier:'Cipla Ltd', gstin:'27CIPLA9988K1Z2', filingStatus:'Pending', lastFiled:'GSTR-1 · May 2026', itcClaimed:'₹15,240'},
+  {supplier:'Sun Pharmaceutical Industries', gstin:'07SUNPH4567G1Z9', filingStatus:'Filed', lastFiled:'GSTR-1 · Jun 2026', itcClaimed:'₹63,600'},
+  {supplier:'3M Healthcare India', gstin:'33M3MHC1122H1Z4', filingStatus:'Filed', lastFiled:'GSTR-1 · Jun 2026', itcClaimed:'₹10,290'},
+];
+
+const subStocklist = [
+  {retailer:'Shree Ganesh Medical Store', product:'Paracetamol 500mg', qty:220, value:220*22},
+  {retailer:'Shree Ganesh Medical Store', product:'ORS Sachet', qty:340, value:340*11},
+  {retailer:'Wellness Retail Pharmacy', product:'Cetirizine 10mg', qty:180, value:180*16},
+  {retailer:'Wellness Retail Pharmacy', product:'Vitamin C 500mg', qty:410, value:410*26},
+  {retailer:'Sunil Traders & Chemist', product:'Multivitamin Caps', qty:95, value:95*150},
+  {retailer:'Sunil Traders & Chemist', product:'Antacid Gel 200ml', qty:130, value:130*60},
+  {retailer:'Anjali Health Mart', product:'N95 Mask (Box)', qty:60, value:60*250},
+  {retailer:'City Care Pharmacy', product:'Amoxicillin 250mg', qty:75, value:75*52},
+];
+
+const purchaseOrders = [
+  {id:'PO-2201', supplier:'GSK Pharmaceuticals Ltd', items:12, amount:384000, status:'Received', date:'2026-07-18'},
+  {id:'PO-2202', supplier:'Cipla Ltd', items:6, amount:152000, status:'Pending', date:'2026-07-20'},
+  {id:'PO-2203', supplier:'Sun Pharmaceutical Industries', items:20, amount:520000, status:'Received', date:'2026-07-10'},
+  {id:'PO-2204', supplier:'3M Healthcare India', items:8, amount:96000, status:'Awaiting Invoice', date:'2026-07-21'},
+];
+
+const salesHistory = [
+  {id:'INV-10231', customer:'Sunil Traders & Chemist', items:32, amount:42800, mode:'UPI', date:'23 Jul 2026, 10:12 AM'},
+  {id:'INV-10230', customer:'Anjali Health Mart', items:14, amount:9350, mode:'Cash', date:'23 Jul 2026, 09:58 AM'},
+  {id:'INV-10229', customer:'Wellness Retail Pharmacy', items:58, amount:96200, mode:'Card', date:'22 Jul 2026, 06:40 PM'},
+  {id:'INV-10228', customer:'City Care Pharmacy', items:22, amount:15400, mode:'Cash', date:'22 Jul 2026, 05:12 PM'},
+  {id:'INV-10227', customer:'Shree Ganesh Medical Store', items:140, amount:182000, mode:'Credit', date:'22 Jul 2026, 02:33 PM'},
+  {id:'INV-10226', customer:'Anjali Health Mart', items:9, amount:6300, mode:'Cash', date:'22 Jul 2026, 11:20 AM'},
+  {id:'INV-10225', customer:'Wellness Retail Pharmacy', items:48, amount:51200, mode:'UPI', date:'21 Jul 2026, 04:05 PM'},
+];
+
+const users = [
+  {name:'Aditi Rao', role:'Admin', email:'aditi.rao@nxtgen.com', status:'Active', last:'Today, 09:40 AM'},
+  {name:'Karan Verma', role:'Sales Executive', email:'karan.verma@nxtgen.com', status:'Active', last:'Today, 08:55 AM'},
+  {name:'Sneha Iyer', role:'Billing Clerk', email:'sneha.iyer@nxtgen.com', status:'Active', last:'Yesterday, 07:20 PM'},
+  {name:'Manoj Pillai', role:'Warehouse Staff', email:'manoj.pillai@nxtgen.com', status:'Inactive', last:'3 days ago'},
+];
+
+const auditLog = [
+  {who:'Aditi Rao', action:'Updated GST rate for HSN 3004', time:'Today, 09:12 AM', icon:'settings'},
+  {who:'Karan Verma', action:'Approved Purchase Order PO-2202', time:'Today, 08:47 AM', icon:'clipboard-check'},
+  {who:'Sneha Iyer', action:'Processed retailer return for INV-10190', time:'Yesterday, 06:10 PM', icon:'undo-2'},
+  {who:'System', action:'Nightly backup completed successfully', time:'Yesterday, 02:00 AM', icon:'database-backup'},
+  {who:'Aditi Rao', action:'Added new supplier 3M Healthcare India', time:'2 days ago', icon:'factory'},
+];
+
+const notifications = [
+  {title:'Cough Syrup 100ml stock is critically low (140 units)', time:'12 min ago', icon:'alert-triangle', color:'#ea580c', bg:'var(--p-orange)'},
+  {title:'Insulin Glargine batch B4432 expires in 9 days', time:'1 hr ago', icon:'calendar-clock', color:'#a16207', bg:'#fef9c3'},
+  {title:'Purchase Order PO-2202 awaiting your approval', time:'3 hr ago', icon:'clipboard-list', color:'#0891b2', bg:'var(--p-cyan)'},
+  {title:'Sunil Traders & Chemist crossed ₹45,000 credit limit', time:'5 hr ago', icon:'wallet', color:'#ef4444', bg:'#fee2e2'},
+  {title:'Nightly backup completed successfully', time:'Yesterday', icon:'database-backup', color:'#65a30d', bg:'var(--p-green)'},
+];
+
+/* ---------- STATE ---------- */
+let cart = [], heldBills = [], activeCategory='All', activePayment='Cash', activeCartTab='cart';
+let sidebarCollapsed=false, invoiceCounter=10232, lastInvoiceText='', chartRegistry={}, reportTab='sales';
+let currentView='dashboard', customerSubTab='retailer';
+
+/* ---------- NAV CONFIG ---------- */
+const modulesNav = [
+  {section:'Overview', items:[{id:'dashboard', label:'Dashboard', icon:'layout-dashboard', kbd:'Ctrl+1'}]},
+  {section:'Catalog', items:[
+    {id:'medicine-master', label:'Product Master', icon:'pill', kbd:'Ctrl+2'},
+    {id:'inventory', label:'Inventory Management', icon:'boxes', kbd:'Ctrl+3', chip:()=>medicines.filter(m=>m.stock<=m.reorder).length},
+  ]},
+  {section:'Operations', items:[
+    {id:'billing', label:'Sales / Order Billing', icon:'shopping-cart', kbd:'Ctrl+4'},
+    {id:'purchase', label:'Purchase Management', icon:'truck', kbd:'Ctrl+5'},
+  ]},
+  {section:'Relationships', items:[
+    {id:'suppliers', label:'Supplier Management', icon:'factory', kbd:'Ctrl+6'},
+    {id:'customers', label:'Customer Management', icon:'users', kbd:'Ctrl+7'},
+  ]},
+  {section:'Insights', items:[{id:'reports', label:'Reports', icon:'bar-chart-3', kbd:'Ctrl+8'}]},
+  {section:'System', items:[
+    {id:'security', label:'User & Security', icon:'shield-check', kbd:'Ctrl+9'},
+    {id:'backup', label:'Backup', icon:'database-backup', kbd:'Ctrl+0'},
+  ]},
+];
+const pageMeta = {
+  'dashboard':['Dashboard','Home / Dashboard'], 'medicine-master':['Product Master','Home / Catalog / Product Master'],
+  'inventory':['Inventory Management','Home / Catalog / Inventory'], 'billing':['Sales / Order Billing','Home / Operations / Billing'],
+  'purchase':['Purchase Management','Home / Operations / Purchase'], 'suppliers':['Supplier Management','Home / Relationships / Suppliers'],
+  'customers':['Customer Management','Home / Relationships / Customers'], 'reports':['Reports','Home / Insights / Reports'],
+  'security':['User & Security','Home / System / Security'], 'backup':['Backup','Home / System / Backup'],
+};
+const ctrlKeyMap = {'1':'dashboard','2':'medicine-master','3':'inventory','4':'billing','5':'purchase','6':'suppliers','7':'customers','8':'reports','9':'security','0':'backup'};
+
+/* ---------- MENU BAR CONFIG (classic ERP style) ---------- */
+const menuConfig = [
+  {label:'File', items:[
+    {label:'Select Company', action:()=>toast('Active Company: NXTGEN Distributors Pvt. Ltd.')},
+    {label:'Company Info', action:()=>switchView('security')},
+    {label:'sep'},
+    {label:'Exit', action:()=>toast('Use the browser tab to close NXTGEN ERP')},
+  ]},
+  {label:'Masters', items:[
+    {label:'Product / Medicine Master', shortcut:'Ctrl+2', action:()=>switchView('medicine-master')},
+    {label:'Supplier Master', shortcut:'Ctrl+6', action:()=>switchView('suppliers')},
+    {label:'Retailer / Customer Master', shortcut:'Ctrl+7', action:()=>switchView('customers')},
+    {label:'sep'},
+    {label:'User Master', action:()=>switchView('security')},
+  ]},
+  {label:'Transactions', items:[
+    {label:'Sales / Order Billing', shortcut:'F6', action:()=>switchView('billing')},
+    {label:'Purchase Order', shortcut:'Ctrl+5', action:()=>switchView('purchase')},
+    {label:'sep'},
+    {label:'Stock Adjustment', action:()=>switchView('inventory')},
+  ]},
+  {label:'Reports', items:[
+    {label:'Sales Report', action:()=>{reportTab='sales'; switchView('reports');}},
+    {label:'Purchase Report', action:()=>{reportTab='purchase'; switchView('reports');}},
+    {label:'Stock Report', action:()=>{reportTab='stock'; switchView('reports');}},
+    {label:'Expiry Report', action:()=>{reportTab='expiry'; switchView('reports');}},
+    {label:'GST Summary', action:()=>{reportTab='gst'; switchView('reports');}},
+    {label:'Profit Report', action:()=>{reportTab='profit'; switchView('reports');}},
+  ]},
+  {label:'Utilities', items:[
+    {label:'Backup Data', action:()=>switchView('backup')},
+    {label:'User & Security', action:()=>switchView('security')},
+  ]},
+  {label:'Help', items:[
+    {label:'Keyboard Shortcuts', shortcut:'F1', action:()=>openHelpModal()},
+    {label:'About NXTGEN ERP', action:()=>toast('NXTGEN ERP v2.4 — Distributor Edition','info')},
+  ]},
+];
+
+/* ---------- UTIL ---------- */
+function inr(n){ return '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function daysLeft(dateStr){ return Math.round((new Date(dateStr) - new Date('2026-07-23'))/(1000*60*60*24)); }
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+function closeAllOverlays(){
+  document.querySelectorAll('.dropdown-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menu-dropdown').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menubar-item').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.modal-overlay').forEach(p=>p.classList.remove('active'));
+  document.getElementById('searchResults')?.classList.remove('active');
+}
+function toggleDropdown(id){
+  const wasActive = document.getElementById(id).classList.contains('active');
+  document.querySelectorAll('.dropdown-panel').forEach(p=>p.classList.remove('active'));
+  if(!wasActive) document.getElementById(id).classList.add('active');
+}
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.dropdown-anchor')) document.querySelectorAll('.dropdown-panel').forEach(p=>p.classList.remove('active'));
+  if(!e.target.closest('.menubar-item')){ document.querySelectorAll('.menu-dropdown').forEach(p=>p.classList.remove('active')); document.querySelectorAll('.menubar-item').forEach(p=>p.classList.remove('open')); }
+  if(!e.target.closest('.global-search')) document.getElementById('searchResults').classList.remove('active');
+});
+
+function toast(msg, icon='check-circle'){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className='toast';
+  el.innerHTML = `<i data-lucide="${icon}" style="width:17px;height:17px;"></i><span>${msg}</span>`;
+  wrap.appendChild(el);
+  lucide.createIcons();
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(30px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 3200);
+}
+function downloadCSV(filename, rows){
+  if(!rows || !rows.length){ toast('Nothing to export yet','info'); return; }
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(',')].concat(rows.map(r => headers.map(h => `"${String(r[h]).replace(/"/g,'""')}"`).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast(`${filename} downloaded`, 'download');
+}
+function downloadTextFile(filename, text){
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast(`${filename} downloaded`, 'download');
+}
+function downloadJSON(filename, obj){ downloadTextFile(filename, JSON.stringify(obj, null, 2)); }
+
+/* ---------- MENU BAR RENDER ---------- */
+function buildMenubar(){
+  const mb = document.getElementById('menubar');
+  mb.innerHTML = `<div class="brand-mini"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> NXTGEN ERP</div>` +
+    menuConfig.map((m,i) => `
+      <div class="menubar-item" data-menu="${i}" onclick="toggleMenubarItem(${i})">
+        ${m.label}
+        <div class="menu-dropdown" id="menuDrop${i}">
+          ${m.items.map(it => it.label==='sep' ? `<div class="menu-sep"></div>` : `
+            <div class="menu-row" onclick="event.stopPropagation(); runMenuAction(${i},'${it.label.replace(/'/g,"\\'")}')">
+              <span>${it.label}</span>${it.shortcut?`<span class="mkbd">${it.shortcut}</span>`:''}
+            </div>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  lucide.createIcons();
+}
+function toggleMenubarItem(i){
+  const drop = document.getElementById('menuDrop'+i);
+  const wasActive = drop.classList.contains('active');
+  document.querySelectorAll('.menu-dropdown').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menubar-item').forEach(p=>p.classList.remove('open'));
+  if(!wasActive){ drop.classList.add('active'); document.querySelector(`.menubar-item[data-menu="${i}"]`).classList.add('open'); }
+}
+function runMenuAction(menuIdx, label){
+  const item = menuConfig[menuIdx].items.find(it => it.label===label);
+  if(item && item.action) item.action();
+  document.querySelectorAll('.menu-dropdown').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menubar-item').forEach(p=>p.classList.remove('open'));
+}
+
+/* ---------- NAV / ROUTING ---------- */
+function buildNav(){
+  const nav = document.getElementById('navList');
+  nav.innerHTML = modulesNav.map(sec => `
+    <div class="nav-section-title">${sec.section}</div>
+    ${sec.items.map(it => `
+      <div class="nav-item ${it.id==='dashboard'?'active':''}" data-view="${it.id}" onclick="switchView('${it.id}')">
+        <i data-lucide="${it.icon}"></i><span class="nav-label">${it.label}</span>
+        ${it.chip && it.chip() ? `<span class="nav-chip">${it.chip()}</span>` : `<span class="nav-kbd">${it.kbd}</span>`}
+      </div>
+    `).join('')}
+  `).join('');
+}
+function toggleSidebar(){
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+  document.getElementById('collapseLabel').textContent = sidebarCollapsed ? 'Expand Menu (F4)' : 'Collapse Menu (F4)';
+}
+function switchView(id, opts){
+  currentView = id;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view===id));
+  document.getElementById('pageTitle').textContent = pageMeta[id][0];
+  document.getElementById('breadcrumb').textContent = pageMeta[id][1];
+  document.getElementById('currentModuleLabel').textContent = 'Module: ' + pageMeta[id][0];
+  renderView(id, opts);
+  document.getElementById('searchResults').classList.remove('active');
+  document.getElementById('globalSearch').value='';
+}
+
+/* ---------- GLOBAL SEARCH ---------- */
+function handleGlobalSearch(){
+  const q = document.getElementById('globalSearch').value.trim().toLowerCase();
+  const box = document.getElementById('searchResults');
+  if(!q){ box.classList.remove('active'); return; }
+  const medMatches = medicines.filter(m => m.name.toLowerCase().includes(q) || m.generic.toLowerCase().includes(q)).slice(0,4);
+  const custMatches = customers.filter(c => c.name.toLowerCase().includes(q)).slice(0,3);
+  const supMatches = suppliers.filter(s => s.name.toLowerCase().includes(q)).slice(0,3);
+  let html = '';
+  if(medMatches.length) html += `<div class="sr-group-title">Products</div>` + medMatches.map(m => `
+      <div class="sr-item" onclick="jumpToMedicine('${m.id}')">
+        <div class="sr-icon" style="background:${catIcons[m.cat].bg};color:${catIcons[m.cat].color};"><i data-lucide="${catIcons[m.cat].icon}" style="width:14px;height:14px;"></i></div>
+        <div><div class="sr-name">${m.name}</div><div class="sr-sub">${m.batch} · Stock ${m.stock} · ${inr(m.mrp)}</div></div>
+      </div>`).join('');
+  if(custMatches.length) html += `<div class="sr-group-title">Retailers</div>` + custMatches.map(c => `
+      <div class="sr-item" onclick="switchView('customers')">
+        <div class="sr-icon" style="background:var(--p-purple);color:#9333ea;"><i data-lucide="store" style="width:14px;height:14px;"></i></div>
+        <div><div class="sr-name">${c.name}</div><div class="sr-sub">${c.phone}</div></div>
+      </div>`).join('');
+  if(supMatches.length) html += `<div class="sr-group-title">Suppliers</div>` + supMatches.map(s => `
+      <div class="sr-item" onclick="switchView('suppliers')">
+        <div class="sr-icon" style="background:var(--p-cyan);color:#0891b2;"><i data-lucide="factory" style="width:14px;height:14px;"></i></div>
+        <div><div class="sr-name">${s.name}</div><div class="sr-sub">${s.phone}</div></div>
+      </div>`).join('');
+  box.innerHTML = html || `<div class="sr-empty">No matches for "${q}"</div>`;
+  box.classList.add('active');
+  lucide.createIcons();
+}
+function jumpToMedicine(id){ switchView('billing'); setTimeout(()=>{ addToCart(id); }, 60); }
+
+/* ---------- NOTIFICATIONS ---------- */
+function renderNotifs(){
+  document.getElementById('notifList').innerHTML = notifications.map(n => `
+    <div class="notif-item" onclick="toast('Opened notification')">
+      <div class="notif-dot-ic" style="background:${n.bg}; color:${n.color};"><i data-lucide="${n.icon}" style="width:15px;height:15px;"></i></div>
+      <div><div class="notif-title">${n.title}</div><div class="notif-time">${n.time}</div></div>
+    </div>
+  `).join('');
+}
+function clearNotifs(){ document.getElementById('notifBadge').style.display='none'; toast('All notifications marked as read'); toggleDropdown('notifPanel'); }
+
+/* ---------- HELP MODAL ---------- */
+function openHelpModal(){ openModal('helpModal'); }
+
+/* ---------- CLOCK ---------- */
+function tickClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit',second:'2-digit', hour12:true});
+}
+setInterval(tickClock, 1000);
+
+/* ---------- CHART HELPERS ---------- */
+function makeChart(canvasId, config){
+  const el = document.getElementById(canvasId);
+  if(!el) return;
+  if(chartRegistry[canvasId]) chartRegistry[canvasId].destroy();
+  if(typeof Chart === 'undefined'){ el.parentElement.innerHTML = '<div class="empty-state"><i data-lucide="bar-chart-3" style="width:30px;height:30px;"></i><b>Chart library unavailable</b><span>Check your internet connection and reload.</span></div>'; return; }
+  config.options = Object.assign({responsive:true, maintainAspectRatio:false}, config.options||{});
+  chartRegistry[canvasId] = new Chart(el, config);
+}
+function sparkline(canvasId, data, color){
+  const el = document.getElementById(canvasId);
+  if(!el || typeof Chart==='undefined') return;
+  if(chartRegistry[canvasId]) chartRegistry[canvasId].destroy();
+  chartRegistry[canvasId] = new Chart(el, {
+    type:'line', data:{labels:data.map((_,i)=>i), datasets:[{data, borderColor:color, borderWidth:2, pointRadius:0, tension:.4, fill:true, backgroundColor:color+'22'}]},
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:false}}, scales:{x:{display:false},y:{display:false}}}
+  });
+}
+
+/* ================= RENDER ROUTER ================= */
+function renderView(id, opts){
+  const c = document.getElementById('content');
+  const renderers = {
+    'dashboard': renderDashboard,'medicine-master': renderMedicineMaster,'inventory': renderInventory,
+    'billing': renderBilling,'purchase': renderPurchase,'suppliers': renderSuppliers,
+    'customers': renderCustomers,'reports': renderReports,'security': renderSecurity,'backup': renderBackup,
+  };
+  c.innerHTML = `<div class="view-enter">${renderers[id](opts)}</div>`;
+  lucide.createIcons();
+  afterRender[id] && afterRender[id](opts);
+}
+const afterRender = {};
+
+/* ================= DASHBOARD ================= */
+function renderDashboard(){
+  const lowStock = medicines.filter(m => m.stock <= m.reorder);
+  const expiringSoon = [...medicines].sort((a,b)=> new Date(a.expiry)-new Date(b.expiry)).slice(0,5);
+  return `
+  <div class="grid grid-4" style="margin-bottom:18px;">
+    <div class="stat-card" style="--tint:var(--p-green)">
+      <div class="top"><div class="stat-icon" style="color:#65a30d;"><i data-lucide="indian-rupee"></i></div><canvas class="stat-spark" id="spark1"></canvas></div>
+      <div class="stat-label">Today's Dispatch Value</div><div class="stat-value">₹4,03,250</div>
+      <div class="stat-delta up"><i data-lucide="arrow-up-right" style="width:12px;height:12px;"></i> 12.4% vs yesterday</div>
+    </div>
+    <div class="stat-card" style="--tint:var(--p-cyan)">
+      <div class="top"><div class="stat-icon" style="color:#0891b2;"><i data-lucide="shopping-bag"></i></div><canvas class="stat-spark" id="spark2"></canvas></div>
+      <div class="stat-label">Today's Purchases</div><div class="stat-value">₹2,21,500</div>
+      <div class="stat-delta down"><i data-lucide="arrow-down-right" style="width:12px;height:12px;"></i> 4.1% vs yesterday</div>
+    </div>
+    <div class="stat-card" style="--tint:var(--p-purple)">
+      <div class="top"><div class="stat-icon" style="color:#9333ea;"><i data-lucide="trending-up"></i></div><canvas class="stat-spark" id="spark3"></canvas></div>
+      <div class="stat-label">Gross Margin</div><div class="stat-value">₹2,64,700</div>
+      <div class="stat-delta up"><i data-lucide="arrow-up-right" style="width:12px;height:12px;"></i> 8.7% margin up</div>
+    </div>
+    <div class="stat-card" style="--tint:var(--p-orange)">
+      <div class="top"><div class="stat-icon" style="color:#ea580c;"><i data-lucide="alert-triangle"></i></div></div>
+      <div class="stat-label">Low Stock Alerts</div><div class="stat-value">${lowStock.length}</div>
+      <div class="stat-delta down">Needs reorder now</div>
+    </div>
+  </div>
+
+  <div class="grid grid-3" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="section-head"><div class="section-title">Sales vs Purchase Trend</div><div class="tabs"><div class="tab active">14 Days</div><div class="tab" onclick="toast('Switched to monthly view')">Monthly</div></div></div>
+      <div class="chart-box"><canvas id="salesTrendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Payment Mode Split</div>
+      <div class="chart-box sm"><canvas id="paymentChart"></canvas></div>
+      <div style="margin-top:6px;">
+        <div class="list-row"><div class="list-left"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);display:inline-block;"></span><span class="list-sub">Cash</span></div><b style="font-size:12px;">42%</b></div>
+        <div class="list-row"><div class="list-left"><span style="width:10px;height:10px;border-radius:50%;background:#0891b2;display:inline-block;"></span><span class="list-sub">UPI</span></div><b style="font-size:12px;">38%</b></div>
+        <div class="list-row"><div class="list-left"><span style="width:10px;height:10px;border-radius:50%;background:#9333ea;display:inline-block;"></span><span class="list-sub">Card</span></div><b style="font-size:12px;">14%</b></div>
+        <div class="list-row"><div class="list-left"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;"></span><span class="list-sub">Credit</span></div><b style="font-size:12px;">6%</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-3" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="section-head"><div class="section-title">Category-wise Sales (This Month)</div>
+        <button class="pill-btn" onclick="downloadCSV('category_sales.csv', medicines.map(m=>({Category:m.cat, Product:m.name, UnitsSold:m.sold, Revenue:m.sold*m.mrp})))"><i data-lucide="download" style="width:13px;height:13px;"></i> Export</button>
+      </div>
+      <div class="chart-box"><canvas id="categoryStackChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Monthly Target Achievement</div>
+      <div class="chart-box sm"><canvas id="gaugeChart"></canvas></div>
+      <div style="text-align:center; margin-top:-6px;"><div style="font-size:22px;font-weight:800;color:var(--text-primary);">78%</div><div style="font-size:11px;color:var(--text-secondary);">₹1.24Cr of ₹1.59Cr target</div></div>
+    </div>
+  </div>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <div class="section-head"><div class="section-title">Top-Selling Products</div><button class="pill-btn" onclick="switchView('reports')">View Full Report</button></div>
+      <div class="chart-box sm"><canvas id="topSellingChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Expiring Soon</div>
+      ${expiringSoon.map(m => `
+        <div class="list-row"><div class="list-left"><div class="list-icon" style="background:${catIcons[m.cat].bg}; color:${catIcons[m.cat].color};"><i data-lucide="${catIcons[m.cat].icon}" style="width:16px;height:16px;"></i></div><div><div class="list-name">${m.name}</div><div class="list-sub">Batch ${m.batch}</div></div></div><span class="tag ${daysLeft(m.expiry) < 30 ? 'red':'yellow'}">${daysLeft(m.expiry)}d</span></div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px;">
+    <div class="section-head">
+      <div class="section-title">Low Stock Alerts</div>
+      <div style="display:flex; gap:8px;">
+        <button class="pill-btn" onclick='downloadCSV("low_stock.csv", ${JSON.stringify(lowStock)})'>Export</button>
+        <button class="pill-btn primary" onclick="switchView('purchase')"><i data-lucide="plus" style="width:14px;height:14px;"></i> Create Purchase Order</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Product</th><th>Batch</th><th>Current Stock</th><th>Reorder Level</th><th>Stock Health</th><th></th></tr></thead><tbody>
+      ${lowStock.map(m => `<tr><td><b>${m.name}</b><div style="font-size:11px;color:var(--text-secondary);">${m.mfr}</div></td><td>${m.batch}</td><td>${m.stock} units</td><td>${m.reorder} units</td><td style="min-width:140px;"><div class="progress-bar"><span style="width:${Math.min(100,(m.stock/m.reorder)*100)}%; background:${m.stock<m.reorder*0.5?'var(--red)':'#ca8a04'};"></span></div></td><td><button class="pill-btn" onclick="toast('Reorder request sent for ${m.name}')">Reorder</button></td></tr>`).join('')}
+    </tbody></table></div>
+  </div>
+  `;
+}
+afterRender['dashboard'] = function(){
+  sparkline('spark1',[30,42,35,50,44,60,55,66],'#10b981');
+  sparkline('spark2',[40,35,38,30,33,28,30,26],'#0891b2');
+  sparkline('spark3',[20,25,22,30,28,35,33,38],'#9333ea');
+  makeChart('salesTrendChart', {
+    type:'line', data:{ labels:['10 Jul','11 Jul','12 Jul','13 Jul','14 Jul','15 Jul','16 Jul','17 Jul','18 Jul','19 Jul','20 Jul','21 Jul','22 Jul','23 Jul'],
+      datasets:[
+        {label:'Sales', data:[298000,332000,310000,385000,362000,410000,398000,320000,410000,385000,452000,398000,523000,403250], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.10)', tension:.4, fill:true, pointRadius:0, borderWidth:2.5},
+        {label:'Purchase', data:[180000,210000,195000,240000,225000,260000,255000,205000,265000,248000,290000,255000,330000,221500], borderColor:'#94a3b8', backgroundColor:'rgba(148,163,184,.06)', tension:.4, fill:true, pointRadius:0, borderWidth:2, borderDash:[5,4]},
+      ]},
+    options:{ plugins:{legend:{position:'top', align:'end', labels:{color:'#334155', boxWidth:10, boxHeight:10, usePointStyle:true, font:{size:11}}}},
+      scales:{ x:{grid:{display:false}, ticks:{color:'#64748b', font:{size:10}}}, y:{grid:{color:'#e2e8f0'}, ticks:{color:'#94a3b8', font:{size:10.5}, callback:v=>'₹'+(v/1000)+'k'}} },
+      interaction:{intersect:false, mode:'index'} }
+  });
+  makeChart('paymentChart', {type:'doughnut', data:{labels:['Cash','UPI','Card','Credit'], datasets:[{data:[42,38,14,6], backgroundColor:['#10b981','#0891b2','#9333ea','#ef4444'], borderWidth:3, borderColor:'#fff'}]}, options:{cutout:'72%', plugins:{legend:{display:false}, tooltip:{callbacks:{label:(ctx)=> ctx.label+': '+ctx.parsed+'%'}}}}});
+  makeChart('categoryStackChart', {type:'bar', data:{labels:['Tablets','Capsules','Syrups','Injections','Sachets','Topical','Devices','PPE'], datasets:[{label:'Units Sold', data:[28900,10200,6050,880,10500,2050,520,1400], backgroundColor:'#34d399', borderRadius:5}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{color:'#334155', font:{size:10}}}, y:{grid:{color:'#e2e8f0'}, ticks:{color:'#94a3b8'}}}}});
+  makeChart('gaugeChart', {type:'doughnut', data:{labels:['Achieved','Remaining'], datasets:[{data:[78,22], backgroundColor:['#10b981','#f1f3f5'], borderWidth:0, circumference:180, rotation:270}]}, options:{cutout:'75%', plugins:{legend:{display:false}, tooltip:{enabled:false}}}});
+  makeChart('topSellingChart', {type:'bar', data:{labels:['Vitamin C','ORS Sachet','Paracetamol','Cetirizine','Multivitamin'], datasets:[{data:[11800,10500,9200,7900,6100], backgroundColor:'#34d399', borderRadius:6}]}, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#e2e8f0'}, ticks:{color:'#64748b', font:{size:11}}}, y:{grid:{display:false}, ticks:{color:'#334155', font:{size:11}}}} }});
+  renderNotifs();
+};
+
+/* ================= MEDICINE / PRODUCT MASTER ================= */
+function renderMedicineMaster(){
+  return `
+  <div class="card">
+    <div class="section-head">
+      <div><div class="section-title" style="margin-bottom:2px;">Product Database</div><div style="font-size:12px;color:var(--text-secondary);">${medicines.length} products across ${new Set(medicines.map(m=>m.cat)).size} categories</div></div>
+      <div style="display:flex; gap:8px;">
+        <button class="pill-btn" onclick="downloadCSV('product_master.csv', medicines)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export CSV</button>
+        <button class="pill-btn primary" onclick="openAddMedicine()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Product (F2)</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Product</th><th>Generic / Brand</th><th>Batch No.</th><th>MRP</th><th>Purchase Price</th><th>GST</th><th>Manufacturer</th><th>HSN Code</th><th>Stock</th><th></th></tr></thead><tbody>
+      ${medicines.map(m => `<tr>
+        <td><div style="display:flex;align-items:center;gap:10px;"><div class="list-icon" style="background:${catIcons[m.cat].bg}; color:${catIcons[m.cat].color}; width:32px;height:32px;"><i data-lucide="${catIcons[m.cat].icon}" style="width:15px;height:15px;"></i></div><div><b>${m.name}</b><div style="font-size:11px;color:var(--text-secondary);">${m.id}</div></div></div></td>
+        <td>${m.generic}<div style="font-size:11px;color:var(--text-secondary);">${m.brand}</div></td><td>${m.batch}</td><td>${inr(m.mrp)}</td><td>${inr(m.purchase)}</td>
+        <td><span class="tag grey">${m.gst}%</span></td><td>${m.mfr}</td><td>${m.hsn}</td><td><span class="tag ${m.stock<=m.reorder?'red':'green'}">${m.stock}</span></td>
+        <td><div class="row-actions"><div class="icon-sm" onclick="toast('Editing ${m.name}')"><i data-lucide="pencil" style="width:14px;height:14px;"></i></div><div class="icon-sm" onclick="toast('${m.name} archived')"><i data-lucide="archive" style="width:14px;height:14px;"></i></div></div></td>
+      </tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+function openAddMedicine(){
+  document.getElementById('formModalTitle').textContent = 'Add New Product';
+  document.getElementById('formModalBody').innerHTML = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Product Name</label><input placeholder="e.g. Paracetamol 650mg"></div>
+      <div class="form-row"><label>Generic Name</label><input placeholder="e.g. Paracetamol"></div>
+      <div class="form-row"><label>Brand Name</label><input placeholder="e.g. Dolo"></div>
+      <div class="form-row"><label>Manufacturer</label><input placeholder="e.g. Micro Labs"></div>
+      <div class="form-row"><label>Batch Number</label><input placeholder="e.g. B2299"></div>
+      <div class="form-row"><label>HSN Code</label><input placeholder="e.g. 3004"></div>
+      <div class="form-row"><label>MRP (₹)</label><input type="number" placeholder="0.00"></div>
+      <div class="form-row"><label>Purchase Price (₹)</label><input type="number" placeholder="0.00"></div>
+      <div class="form-row"><label>GST %</label><select><option>5%</option><option>12%</option><option>18%</option></select></div>
+      <div class="form-row"><label>Category</label><select>${Object.keys(catIcons).map(c=>`<option>${c}</option>`).join('')}</select></div>
+    </div>`;
+  openModal('formModal');
+}
+function submitFormModal(){ closeModal('formModal'); toast('Record saved successfully'); }
+
+/* ================= INVENTORY ================= */
+function renderInventory(){
+  const totalUnits = medicines.reduce((s,m)=>s+m.stock,0);
+  return `
+  <div class="grid grid-4" style="margin-bottom:18px;">
+    <div class="stat-card" style="--tint:var(--p-cyan)"><div class="stat-label">Total Stock Units</div><div class="stat-value">${totalUnits.toLocaleString()}</div><div class="stat-delta up">Across all batches</div></div>
+    <div class="stat-card" style="--tint:var(--p-green)"><div class="stat-label">Batches Tracked</div><div class="stat-value">${medicines.length}</div><div class="stat-delta up">Active batches</div></div>
+    <div class="stat-card" style="--tint:var(--p-yellow)"><div class="stat-label">Expiring in 60 Days</div><div class="stat-value">${medicines.filter(m=>daysLeft(m.expiry)<=60).length}</div><div class="stat-delta down">Review soon</div></div>
+    <div class="stat-card" style="--tint:var(--p-orange)"><div class="stat-label">Below Reorder Level</div><div class="stat-value">${medicines.filter(m=>m.stock<=m.reorder).length}</div><div class="stat-delta down">Action needed</div></div>
+  </div>
+  <div class="card" style="margin-bottom:18px;"><div class="section-title">Stock Distribution by Category</div><div class="chart-box sm"><canvas id="invCatChart"></canvas></div></div>
+  <div class="card">
+    <div class="section-head"><div class="section-title">Batch-wise Inventory</div>
+      <div style="display:flex;gap:8px;">
+        <button class="pill-btn" onclick="downloadCSV('inventory.csv', medicines.map(m=>({Product:m.name,Batch:m.batch,Category:m.cat,Stock:m.stock,Reorder:m.reorder,Expiry:m.expiry})))"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button>
+        <button class="pill-btn" onclick="toast('Physical stock adjustment recorded')"><i data-lucide="sliders-horizontal" style="width:14px;height:14px;"></i> Stock Adjustment</button>
+        <button class="pill-btn primary" onclick="toast('Stock-in entry created')"><i data-lucide="arrow-down-to-line" style="width:14px;height:14px;"></i> Stock In</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>Product</th><th>Batch</th><th>Category</th><th>Available Qty</th><th>Reorder Level</th><th>Expiry Date</th><th>Status</th><th></th></tr></thead><tbody>
+      ${medicines.map(m => { const d = daysLeft(m.expiry); let status = `<span class="tag green">Healthy</span>`;
+        if(m.stock<=m.reorder) status = `<span class="tag red">Reorder Needed</span>`; else if(d < 60) status = `<span class="tag yellow">Expiring Soon</span>`;
+        return `<tr><td><b>${m.name}</b></td><td>${m.batch}</td><td><span class="tag grey">${m.cat}</span></td><td>${m.stock}</td><td>${m.reorder}</td><td>${m.expiry} <span style="color:var(--text-secondary);font-size:11px;">(${d}d)</span></td><td>${status}</td><td><div class="icon-sm" onclick="toast('Viewing batch history for ${m.batch}')"><i data-lucide="history" style="width:14px;height:14px;"></i></div></td></tr>`; }).join('')}
+    </tbody></table></div>
+  </div>`;
+}
+afterRender['inventory'] = function(){
+  const byCat = {}; medicines.forEach(m => byCat[m.cat] = (byCat[m.cat]||0) + m.stock);
+  makeChart('invCatChart', {type:'bar', data:{labels:Object.keys(byCat), datasets:[{data:Object.values(byCat), backgroundColor:['#10b981','#9333ea','#ea580c','#ca8a04','#65a30d','#0891b2','#9333ea','#65a30d'], borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{color:'#334155', font:{size:11}}}, y:{grid:{color:'#e2e8f0'}, ticks:{color:'#94a3b8'}}}}});
+};
+
+/* ================= BILLING / ORDER BILLING ================= */
+function renderBilling(){
+  const categories = ['All', ...Object.keys(catIcons)];
+  setTimeout(()=>{ renderProductGrid(); renderCartPanel(); document.getElementById('posSearch')?.focus(); }, 0);
+  return `
+  <div class="pos-layout">
+    <div class="pos-left">
+      <div class="pos-search">
+        <div class="search-box"><i data-lucide="scan-barcode" style="width:16px;height:16px;"></i><input id="posSearch" placeholder="Scan barcode or search product — press Enter to add first match" oninput="renderProductGrid()" onkeydown="handlePosSearchKey(event)"></div>
+        <button class="pill-btn" onclick="toast('Barcode scanner activated — point camera at code','camera')"><i data-lucide="camera" style="width:14px;height:14px;"></i> Scan</button>
+      </div>
+      <div class="category-scroll" id="catScroll">${categories.map(c => `<div class="cat-chip ${c===activeCategory?'active':''}" onclick="setCategory('${c}')">${c}</div>`).join('')}</div>
+      <div class="product-grid" id="productGrid"></div>
+    </div>
+    <div class="pos-right">
+      <div class="cart-tabs">
+        <div class="cart-tab ${activeCartTab==='cart'?'active':''}" data-tab="cart" onclick="setCartTab('cart')">Current Order</div>
+        <div class="cart-tab ${activeCartTab==='held'?'active':''}" data-tab="held" onclick="setCartTab('held')">Held (${heldBills.length})</div>
+        <div class="cart-tab ${activeCartTab==='recent'?'active':''}" data-tab="recent" onclick="setCartTab('recent')">Recent</div>
+      </div>
+      <div id="cartPanelBody" style="flex:1; display:flex; flex-direction:column; overflow:hidden;"></div>
+    </div>
+  </div>`;
+}
+function handlePosSearchKey(e){
+  if(e.key==='Enter'){
+    const q = e.target.value.toLowerCase();
+    const match = medicines.find(m => (activeCategory==='All'||m.cat===activeCategory) && (m.name.toLowerCase().includes(q)||m.generic.toLowerCase().includes(q)));
+    if(match){ addToCart(match.id); e.target.select(); } else toast('No matching product found','search-x');
+  }
+}
+function setCartTab(tab){ activeCartTab = tab; renderCartPanel(); }
+function renderCartPanel(){
+  document.querySelectorAll('.cart-tab').forEach(el => el.classList.toggle('active', el.dataset.tab===activeCartTab));
+  const body = document.getElementById('cartPanelBody');
+  if(!body) return;
+  if(activeCartTab==='cart'){
+    body.innerHTML = `
+      <div class="customer-select"><i data-lucide="store" style="width:15px;height:15px;color:var(--text-secondary);"></i>
+        <select id="customerSelect">${customers.map(c=>`<option value="${c.id}">${c.name}${c.credit?` (Due ${inr(c.credit)})`:''}</option>`).join('')}</select>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-summary" id="cartSummary"></div>`;
+    lucide.createIcons(); renderCart();
+  } else if(activeCartTab==='held'){
+    body.innerHTML = `<div style="flex:1; overflow-y:auto; padding-bottom:14px;">` + (
+      heldBills.length ? heldBills.map((h,i) => `
+        <div class="held-card"><div class="hc-top"><span>Hold #${i+1} · ${h.customer}</span><span>${inr(h.total)}</span></div><div class="hc-sub">${h.items.length} items · ${h.time}</div>
+        <div class="hc-actions"><button class="pill-btn primary" style="flex:1;" onclick="resumeHold(${i})"><i data-lucide="play" style="width:12px;height:12px;"></i> Resume</button><button class="pill-btn danger" onclick="deleteHold(${i})"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button></div></div>
+      `).join('') : `<div class="empty-state"><i data-lucide="pause-circle" style="width:34px;height:34px;"></i><b>No held orders</b><span>Hold an order to serve another retailer first.</span></div>`
+    ) + `</div>`; lucide.createIcons();
+  } else {
+    body.innerHTML = `<div style="flex:1; overflow-y:auto; padding-bottom:14px;">` + salesHistory.map(s => `<div class="recent-card"><div class="hc-top"><span>${s.id}</span><span>${inr(s.amount)}</span></div><div class="hc-sub">${s.customer} · ${s.items} items · ${s.mode}</div><div class="hc-sub">${s.date}</div></div>`).join('') + `</div>`;
+  }
+}
+function setCategory(c){ activeCategory = c; document.querySelectorAll('#catScroll .cat-chip').forEach(el => el.classList.toggle('active', el.textContent===c)); renderProductGrid(); }
+function renderProductGrid(){
+  const grid = document.getElementById('productGrid'); if(!grid) return;
+  const q = (document.getElementById('posSearch')?.value || '').toLowerCase();
+  const filtered = medicines.filter(m => (activeCategory==='All' || m.cat===activeCategory) && (m.name.toLowerCase().includes(q) || m.generic.toLowerCase().includes(q) || m.id.toLowerCase().includes(q)));
+  grid.innerHTML = filtered.map(m => `
+    <div class="product-card" onclick="addToCart('${m.id}')">
+      <div class="icon" style="background:${catIcons[m.cat].bg}; color:${catIcons[m.cat].color};"><i data-lucide="${catIcons[m.cat].icon}" style="width:18px;height:18px;"></i></div>
+      <div class="pname">${m.name}</div><div class="pmeta">${m.batch} · GST ${m.gst}%</div>
+      <div class="pfoot"><span class="pprice">${inr(m.mrp)}</span><span class="pstock" style="background:${m.stock<=m.reorder?'rgba(239,68,68,.13)':'rgba(16,185,129,.13)'}; color:${m.stock<=m.reorder?'var(--red)':'var(--green)'};">${m.stock} left</span></div>
+    </div>`).join('') || `<div style="grid-column:1/-1;"><div class="empty-state"><i data-lucide="search-x" style="width:32px;height:32px;"></i><b>No products found</b><span>Try a different search term or category.</span></div></div>`;
+  lucide.createIcons();
+}
+function addToCart(id){
+  const med = medicines.find(m => m.id===id);
+  if(med.stock <= 0){ toast('This item is out of stock', 'alert-triangle'); return; }
+  const existing = cart.find(c => c.med.id===id);
+  if(existing){ if(existing.qty < med.stock) existing.qty++; else { toast('Reached available stock limit', 'alert-triangle'); return; } }
+  else { cart.push({med, qty:1}); }
+  if(activeCartTab!=='cart') setCartTab('cart'); else renderCart();
+  toast(`${med.name} added to order`, 'plus-circle');
+}
+function changeQty(id, delta){
+  const item = cart.find(c => c.med.id===id); if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0) cart = cart.filter(c => c.med.id !== id); else if(item.qty > item.med.stock) item.qty = item.med.stock;
+  renderCart();
+}
+function removeFromCart(id){ cart = cart.filter(c => c.med.id !== id); renderCart(); toast('Item removed from order','trash-2'); }
+function setPayment(mode){ activePayment = mode; document.querySelectorAll('.pay-method').forEach(el => el.classList.toggle('active', el.dataset.mode===mode)); }
+function cartTotals(){
+  const discountInput = document.getElementById('discountInput');
+  const discountPct = discountInput ? (parseFloat(discountInput.value)||0) : 0;
+  const subtotal = cart.reduce((s,c)=> s + c.med.mrp*c.qty, 0);
+  const gstDisplay = cart.reduce((s,c)=> s + (c.med.mrp*c.qty*c.med.gst/100),0);
+  const discountAmt = subtotal * (discountPct/100);
+  const total = subtotal - discountAmt;
+  return {subtotal, discountAmt, discountPct, total, gstDisplay};
+}
+function holdBill(){
+  if(cart.length===0) return;
+  const t = cartTotals();
+  const custName = customers.find(c=>c.id===document.getElementById('customerSelect')?.value)?.name || 'Retailer';
+  heldBills.push({items:[...cart], customer:custName, total:t.total, time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+  cart = []; toast('Order held — you can resume it anytime', 'pause-circle'); renderCartPanel();
+}
+function resumeHold(i){ cart = heldBills[i].items; heldBills.splice(i,1); setCartTab('cart'); toast('Held order resumed', 'play'); }
+function deleteHold(i){ heldBills.splice(i,1); renderCartPanel(); toast('Held order discarded','trash-2'); }
+function renderCart(){
+  const wrap = document.getElementById('cartItems'); const summary = document.getElementById('cartSummary'); if(!wrap) return;
+  if(cart.length === 0){ wrap.innerHTML = `<div class="empty-state"><i data-lucide="shopping-cart" style="width:36px;height:36px;"></i><b>Order is empty</b><span>Click a product to add it here</span></div>`; }
+  else {
+    wrap.innerHTML = cart.map(c => `
+      <div class="cart-item"><div class="ci-icon" style="background:${catIcons[c.med.cat].bg}; color:${catIcons[c.med.cat].color};"><i data-lucide="${catIcons[c.med.cat].icon}" style="width:14px;height:14px;"></i></div>
+        <div style="flex:1;"><div class="ci-name">${c.med.name}</div><div class="ci-meta">${inr(c.med.mrp)} × ${c.qty}</div></div>
+        <div class="qty-control"><button onclick="changeQty('${c.med.id}',-1)">−</button><span>${c.qty}</span><button onclick="changeQty('${c.med.id}',1)">+</button></div>
+        <div class="ci-price">${inr(c.med.mrp*c.qty)}</div><div class="ci-remove" onclick="removeFromCart('${c.med.id}')"><i data-lucide="x" style="width:15px;height:15px;"></i></div></div>
+    `).join('');
+  }
+  const t = cartTotals();
+  summary.innerHTML = `
+    <div class="discount-row"><input id="discountInput" type="number" min="0" max="100" placeholder="Discount %" value="${t.discountPct||''}" oninput="renderCart()"><input placeholder="Scheme code"></div>
+    <div class="sum-row"><span>Subtotal</span><span>${inr(t.subtotal)}</span></div>
+    <div class="sum-row"><span>Discount</span><span>− ${inr(t.discountAmt)}</span></div>
+    <div class="sum-row"><span>GST (included)</span><span>${inr(t.gstDisplay)}</span></div>
+    <div class="sum-row total"><span>Total Payable</span><span>${inr(t.total)}</span></div>
+    <div class="pay-methods">
+      <div class="pay-method ${activePayment==='Cash'?'active':''}" data-mode="Cash" onclick="setPayment('Cash')"><i data-lucide="banknote" style="width:16px;height:16px;"></i>Cash</div>
+      <div class="pay-method ${activePayment==='UPI'?'active':''}" data-mode="UPI" onclick="setPayment('UPI')"><i data-lucide="smartphone" style="width:16px;height:16px;"></i>UPI</div>
+      <div class="pay-method ${activePayment==='Card'?'active':''}" data-mode="Card" onclick="setPayment('Card')"><i data-lucide="credit-card" style="width:16px;height:16px;"></i>Card</div>
+    </div>
+    <div class="action-row"><button class="pill-btn" ${cart.length===0?'disabled':''} onclick="holdBill()"><i data-lucide="pause-circle" style="width:14px;height:14px;"></i> Hold</button><button class="pill-btn danger" ${cart.length===0?'disabled':''} onclick="cart=[]; renderCart(); toast('Order cleared','trash-2')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Clear</button></div>
+    <button class="checkout-btn" ${cart.length===0?'disabled':''} onclick="checkout()"><i data-lucide="check-circle" style="width:16px;height:16px;"></i> Complete Order (F9) · ${inr(t.total)}</button>`;
+  lucide.createIcons();
+}
+function checkout(){
+  if(cart.length===0) return;
+  const t = cartTotals();
+  const custName = customers.find(c=>c.id===document.getElementById('customerSelect').value)?.name || 'Retailer';
+  const invId = 'INV-' + (invoiceCounter++);
+  const now = new Date().toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  document.getElementById('invoiceContent').innerHTML = `
+    <div class="invoice-brand"><b>NXTGEN Distributors Pvt. Ltd.</b><div>GSTIN: 27NXTGN1234P1Z8 · ${invId}</div></div>
+    <div class="invoice-meta"><span>Retailer: ${custName}</span><span>${now}</span></div>
+    <table class="invoice-table"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${cart.map(c => `<tr><td>${c.med.name}</td><td>${c.qty}</td><td>${inr(c.med.mrp)}</td><td style="text-align:right;">${inr(c.med.mrp*c.qty)}</td></tr>`).join('')}</tbody></table>
+    <div class="sum-row"><span>Subtotal</span><span>${inr(t.subtotal)}</span></div>
+    <div class="sum-row"><span>Discount (${t.discountPct||0}%)</span><span>− ${inr(t.discountAmt)}</span></div>
+    <div class="sum-row"><span>GST Included</span><span>${inr(t.gstDisplay)}</span></div>
+    <div class="sum-row total"><span>Total Paid (${activePayment})</span><span>${inr(t.total)}</span></div>`;
+  lastInvoiceText = `NXTGEN DISTRIBUTORS PVT. LTD.\nGSTIN: 27NXTGN1234P1Z8\nInvoice: ${invId}\nRetailer: ${custName}\nDate: ${now}\n${'-'.repeat(40)}\n` +
+    cart.map(c => `${c.med.name} x${c.qty} @ ${inr(c.med.mrp)} = ${inr(c.med.mrp*c.qty)}`).join('\n') +
+    `\n${'-'.repeat(40)}\nSubtotal: ${inr(t.subtotal)}\nDiscount: -${inr(t.discountAmt)}\nGST Included: ${inr(t.gstDisplay)}\nTOTAL PAID (${activePayment}): ${inr(t.total)}\n\nThank you for your business!`;
+  cart.forEach(c => { const m = medicines.find(x=>x.id===c.med.id); m.stock = Math.max(0, m.stock - c.qty); });
+  openModal('invoiceModal'); cart = []; renderCart(); renderProductGrid();
+}
+function downloadInvoice(){ downloadTextFile('invoice.txt', lastInvoiceText); }
+function printInvoice(){
+  const content = document.getElementById('invoiceContent').innerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Invoice</title><style>body{font-family:Arial,sans-serif; padding:24px; color:#0f172a;} table{width:100%; border-collapse:collapse; margin:12px 0;} th,td{padding:6px 4px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:13px;} .invoice-brand{text-align:center; margin-bottom:10px;} .invoice-meta{display:flex; justify-content:space-between; font-size:12px; color:#64748b;} .sum-row{display:flex; justify-content:space-between; font-size:13px; padding:3px 0;} .sum-row.total{font-weight:800; font-size:16px; border-top:1px dashed #ccc; padding-top:8px; margin-top:6px;}</style></head><body>${content}</body></html>`);
+  w.document.close(); w.print();
+}
+
+/* ================= PURCHASE ================= */
+function renderPurchase(){
+  return `
+  <div class="card">
+    <div class="section-head"><div class="section-title">Purchase Orders</div>
+      <div style="display:flex; gap:8px;"><button class="pill-btn" onclick="downloadCSV('purchase_orders.csv', purchaseOrders)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button><button class="pill-btn primary" onclick="openNewPO()"><i data-lucide="plus" style="width:14px;height:14px;"></i> New Purchase Order (F2)</button></div>
+    </div>
+    <div class="table-wrap"><table><thead><tr><th>PO Number</th><th>Supplier</th><th>Items</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>
+      ${purchaseOrders.map(po => `<tr><td><b>${po.id}</b></td><td>${po.supplier}</td><td>${po.items} items</td><td>${inr(po.amount)}</td><td>${po.date}</td><td><span class="tag ${po.status==='Received'?'green':po.status==='Pending'?'yellow':'grey'}">${po.status}</span></td><td><div class="row-actions"><div class="icon-sm" onclick="toast('Viewing ${po.id}')"><i data-lucide="eye" style="width:14px;height:14px;"></i></div>${po.status!=='Received' ? `<div class="icon-sm" onclick="toast('${po.id} marked as received — batches created')"><i data-lucide="package-check" style="width:14px;height:14px;"></i></div>` : ''}</div></td></tr>`).join('')}
+    </tbody></table></div>
+  </div>
+  <div class="grid grid-2" style="margin-top:18px;">
+    <div class="card"><div class="section-title">Goods Receipt Note</div><p style="font-size:12.3px;color:var(--text-secondary); line-height:1.6;">When a purchase order is marked as received, NXTGEN ERP automatically creates new batch entries in Inventory Management with the batch number, expiry date and quantity supplied.</p><button class="pill-btn" style="margin-top:12px;" onclick="toast('Goods receipt recorded')"><i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Record Goods Receipt</button></div>
+    <div class="card"><div class="section-title">Purchase Returns</div><p style="font-size:12.3px;color:var(--text-secondary); line-height:1.6;">Return damaged or expired stock to suppliers and automatically adjust inventory and outstanding balances.</p><button class="pill-btn danger" style="margin-top:12px;" onclick="toast('Purchase return initiated')"><i data-lucide="corner-up-left" style="width:14px;height:14px;"></i> Initiate Return</button></div>
+  </div>`;
+}
+function openNewPO(){
+  document.getElementById('formModalTitle').textContent = 'New Purchase Order';
+  document.getElementById('formModalBody').innerHTML = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Supplier</label><select>${suppliers.map(s=>`<option>${s.name}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Expected Delivery</label><input type="date"></div>
+      <div class="form-row"><label>Product</label><select>${medicines.map(m=>`<option>${m.name}</option>`).join('')}</select></div>
+      <div class="form-row"><label>Quantity</label><input type="number" placeholder="e.g. 1000"></div>
+    </div>
+    <div class="form-row"><label>Notes</label><textarea rows="3" placeholder="Additional instructions for the supplier..."></textarea></div>`;
+  openModal('formModal');
+}
+
+/* ================= SUPPLIER MANAGEMENT (with dropdown) ================= */
+let supplierSubView = 'list';
+function renderSuppliers(){
+  return `
+  <div class="section-head">
+    <div class="tabs">
+      <div class="tab ${supplierSubView==='list'?'active':''}" onclick="setSupplierSubView('list')">Supplier List</div>
+      <div class="tab ${supplierSubView==='invoice'?'active':''}" onclick="setSupplierSubView('invoice')">Supplier Invoices</div>
+      <div class="tab ${supplierSubView==='gst'?'active':''}" onclick="setSupplierSubView('gst')">Supplier GST</div>
+    </div>
+    <div class="split-btn dropdown-anchor">
+      <button class="pill-btn primary" onclick="openNewSupplier()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Supplier</button>
+      <button class="pill-btn primary split-chevron" onclick="toggleDropdown('supplierActionMenu')"><i data-lucide="chevron-down" style="width:14px;height:14px;"></i></button>
+      <div class="dropdown-panel left" id="supplierActionMenu" style="width:240px;">
+        <div class="profile-menu-item" onclick="closeAllOverlays(); openNewSupplier()"><i data-lucide="factory" style="width:15px;height:15px;"></i> Add Supplier</div>
+        <div class="profile-menu-item" onclick="closeAllOverlays(); setSupplierSubView('invoice')"><i data-lucide="receipt" style="width:15px;height:15px;"></i> Supplier Invoice</div>
+        <div class="profile-menu-item" onclick="closeAllOverlays(); setSupplierSubView('gst')"><i data-lucide="file-text" style="width:15px;height:15px;"></i> Supplier GST</div>
+      </div>
+    </div>
+  </div>
+  <div id="supplierBody"></div>`;
+}
+function setSupplierSubView(v){ supplierSubView = v; renderView('suppliers'); }
+afterRender['suppliers'] = function(){
+  const body = document.getElementById('supplierBody');
+  if(supplierSubView==='list'){
+    body.innerHTML = `
+    <div class="card">
+      <div class="section-head"><div class="section-title">Supplier Database</div><button class="pill-btn" onclick="downloadCSV('suppliers.csv', suppliers)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Supplier</th><th>Contact</th><th>GSTIN</th><th>Outstanding Balance</th><th>Last Order</th><th></th></tr></thead><tbody>
+        ${suppliers.map(s => `<tr><td><b>${s.name}</b></td><td>${s.phone}</td><td>${s.gst}</td><td><span class="tag ${s.outstanding>0?'red':'green'}">${inr(s.outstanding)}</span></td><td>${s.lastOrder}</td><td><div class="row-actions"><div class="icon-sm" onclick="toast('Viewing purchase history for ${s.name}')"><i data-lucide="history" style="width:14px;height:14px;"></i></div><div class="icon-sm" onclick="toast('Payment recorded for ${s.name}')"><i data-lucide="wallet" style="width:14px;height:14px;"></i></div></div></td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  } else if(supplierSubView==='invoice'){
+    body.innerHTML = `
+    <div class="card">
+      <div class="section-head"><div class="section-title">Supplier Invoices</div><button class="pill-btn" onclick="downloadCSV('supplier_invoices.csv', supplierInvoices)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Invoice No.</th><th>Supplier</th><th>Amount</th><th>Date</th><th>Status</th><th></th></tr></thead><tbody>
+        ${supplierInvoices.map(inv => `<tr><td><b>${inv.id}</b></td><td>${inv.supplier}</td><td>${inr(inv.amount)}</td><td>${inv.date}</td><td><span class="tag ${inv.status==='Paid'?'green':'yellow'}">${inv.status}</span></td><td><div class="row-actions"><div class="icon-sm" onclick="toast('Viewing ${inv.id}')"><i data-lucide="eye" style="width:14px;height:14px;"></i></div>${inv.status==='Due'?`<div class="icon-sm" onclick="toast('${inv.id} marked as paid')"><i data-lucide="banknote" style="width:14px;height:14px;"></i></div>`:''}</div></td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  } else if(supplierSubView==='gst'){
+    body.innerHTML = `
+    <div class="card">
+      <div class="section-head"><div class="section-title">Supplier GST Compliance</div><button class="pill-btn" onclick="downloadCSV('supplier_gst.csv', supplierGSTData)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Supplier</th><th>GSTIN</th><th>Filing Status</th><th>Last Return Filed</th><th>ITC Claimed</th></tr></thead><tbody>
+        ${supplierGSTData.map(g => `<tr><td><b>${g.supplier}</b></td><td>${g.gstin}</td><td><span class="tag ${g.filingStatus==='Filed'?'green':'yellow'}">${g.filingStatus}</span></td><td>${g.lastFiled}</td><td>${g.itcClaimed}</td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  }
+  lucide.createIcons();
+};
+function openNewSupplier(){
+  document.getElementById('formModalTitle').textContent = 'Add Supplier';
+  document.getElementById('formModalBody').innerHTML = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Supplier Name</label><input placeholder="e.g. Wellness Pharmaceuticals"></div>
+      <div class="form-row"><label>Phone</label><input placeholder="e.g. 022-1234567"></div>
+      <div class="form-row"><label>GSTIN</label><input placeholder="e.g. 27ABCDE1234F1Z5"></div>
+      <div class="form-row"><label>Address</label><input placeholder="City, State"></div>
+    </div>`;
+  openModal('formModal');
+}
+
+/* ================= CUSTOMER / RETAILER MANAGEMENT (with dropdown) ================= */
+function renderCustomers(){
+  return `
+  <div class="section-head">
+    <div class="tabs">
+      <div class="tab ${customerSubTab==='retailer'?'active':''}" onclick="setCustomerSubTab('retailer')">Retailer</div>
+      <div class="tab ${customerSubTab==='substock'?'active':''}" onclick="setCustomerSubTab('substock')">Sub Stocklist</div>
+    </div>
+    <div class="split-btn dropdown-anchor">
+      <button class="pill-btn primary" onclick="openNewCustomer()"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Customer</button>
+      <button class="pill-btn primary split-chevron" onclick="toggleDropdown('customerActionMenu')"><i data-lucide="chevron-down" style="width:14px;height:14px;"></i></button>
+      <div class="dropdown-panel left" id="customerActionMenu" style="width:230px;">
+        <div class="profile-menu-item" onclick="closeAllOverlays(); setCustomerSubTab('retailer')"><i data-lucide="store" style="width:15px;height:15px;"></i> Retailer</div>
+        <div class="profile-menu-item" onclick="closeAllOverlays(); openNewCustomer()"><i data-lucide="user-plus" style="width:15px;height:15px;"></i> Add Customer</div>
+        <div class="profile-menu-item" onclick="closeAllOverlays(); setCustomerSubTab('substock')"><i data-lucide="warehouse" style="width:15px;height:15px;"></i> Sub Stocklist</div>
+      </div>
+    </div>
+  </div>
+  <div id="customerBody"></div>`;
+}
+function setCustomerSubTab(t){ customerSubTab = t; renderView('customers'); }
+afterRender['customers'] = function(){
+  const body = document.getElementById('customerBody');
+  if(customerSubTab==='retailer'){
+    body.innerHTML = `
+    <div class="card">
+      <div class="section-head"><div class="section-title">Retailer Records</div><button class="pill-btn" onclick="downloadCSV('retailers.csv', customers)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Retailer</th><th>City</th><th>Phone</th><th>GSTIN</th><th>Type</th><th>Credit Due</th><th>Loyalty Points</th><th></th></tr></thead><tbody>
+        ${customers.map((c) => `<tr><td><b>${c.name}</b></td><td>${c.city}</td><td>${c.phone}</td><td>${c.gstin}</td><td><span class="tag ${c.type==='Credit'?'yellow':c.type==='Loyalty'?'green':'grey'}">${c.type}</span></td><td>${c.credit>0?`<span class="tag red">${inr(c.credit)}</span>`:'—'}</td><td>${c.points} pts</td><td><div class="row-actions"><div class="icon-sm" onclick="toast('Viewing order history for ${c.name}')"><i data-lucide="file-text" style="width:14px;height:14px;"></i></div><div class="icon-sm" onclick="toast('Editing ${c.name}')"><i data-lucide="pencil" style="width:14px;height:14px;"></i></div></div></td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  } else {
+    body.innerHTML = `
+    <div class="card">
+      <div class="section-head"><div class="section-title">Sub Stocklist — Stock Lying at Retailers</div><button class="pill-btn" onclick="downloadCSV('sub_stocklist.csv', subStocklist)"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Retailer</th><th>Product</th><th>Quantity</th><th>Stock Value</th><th></th></tr></thead><tbody>
+        ${subStocklist.map(s => `<tr><td><b>${s.retailer}</b></td><td>${s.product}</td><td>${s.qty} units</td><td>${inr(s.value)}</td><td><div class="icon-sm" onclick="toast('Reconciling stock for ${s.retailer}')"><i data-lucide="refresh-cw" style="width:14px;height:14px;"></i></div></td></tr>`).join('')}
+      </tbody></table></div>
+    </div>`;
+  }
+  lucide.createIcons();
+};
+function openNewCustomer(){
+  document.getElementById('formModalTitle').textContent = 'Add Customer / Retailer';
+  document.getElementById('formModalBody').innerHTML = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Retailer / Firm Name</label><input placeholder="e.g. City Health Pharmacy"></div>
+      <div class="form-row"><label>Phone</label><input placeholder="e.g. 98765 43210"></div>
+      <div class="form-row"><label>GSTIN</label><input placeholder="e.g. 27ABCDE1234F1Z5"></div>
+      <div class="form-row"><label>City</label><input placeholder="e.g. Pune"></div>
+      <div class="form-row"><label>Customer Type</label><select><option>Regular</option><option>Credit</option><option>Loyalty</option></select></div>
+      <div class="form-row"><label>Opening Credit (₹)</label><input type="number" placeholder="0"></div>
+    </div>`;
+  openModal('formModal');
+}
+
+/* ================= REPORTS ================= */
+const reportTabs = ['sales','purchase','stock','expiry','gst','profit'];
+const reportLabels = {sales:'Sales', purchase:'Purchase', stock:'Stock', expiry:'Expiry', gst:'GST Summary', profit:'Profit'};
+function renderReports(){
+  setTimeout(renderReportBody, 0);
+  return `
+  <div class="section-head">
+    <div class="tabs">${reportTabs.map(t => `<div class="tab ${t===reportTab?'active':''}" onclick="setReportTab('${t}')">${reportLabels[t]}</div>`).join('')}</div>
+    <button class="pill-btn dark" onclick="exportCurrentReport()"><i data-lucide="file-down" style="width:14px;height:14px;"></i> Export ${reportLabels[reportTab]} CSV</button>
+  </div>
+  <div id="reportBody"></div>`;
+}
+function setReportTab(t){ reportTab = t; renderView('reports'); }
+function renderReportBody(){
+  const body = document.getElementById('reportBody'); if(!body) return;
+  if(reportTab==='sales'){
+    body.innerHTML = `
+      <div class="grid grid-3" style="margin-bottom:18px;">
+        <div class="card"><div class="section-title">Sales Trend (6 Months)</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div>
+        <div class="card"><div class="section-title">Sales by Payment Mode</div><div class="chart-box"><canvas id="rptChart2"></canvas></div><div class="kpi-strip"><div class="kpi-chip">Avg Order <b>${inr(41000)}</b></div><div class="kpi-chip">Orders Today <b>28</b></div></div></div>
+      </div>
+      <div class="card"><div class="section-title">Recent Sales</div><div class="table-wrap"><table><thead><tr><th>Invoice</th><th>Retailer</th><th>Items</th><th>Amount</th><th>Mode</th><th>Date</th></tr></thead><tbody>${salesHistory.map(s=>`<tr><td><b>${s.id}</b></td><td>${s.customer}</td><td>${s.items}</td><td>${inr(s.amount)}</td><td><span class="tag grey">${s.mode}</span></td><td>${s.date}</td></tr>`).join('')}</tbody></table></div></div>`;
+    makeChart('rptChart1', {type:'line', data:{labels:['Feb','Mar','Apr','May','Jun','Jul'], datasets:[{label:'Sales', data:[4200000,4550000,3980000,5120000,4890000,5300000], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.1)', fill:true, tension:.4}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{color:'#e2e8f0'}}}}});
+    makeChart('rptChart2', {type:'pie', data:{labels:['Cash','UPI','Card','Credit'], datasets:[{data:[42,38,14,6], backgroundColor:['#10b981','#0891b2','#9333ea','#ef4444'], borderWidth:2, borderColor:'#fff'}]}, options:{plugins:{legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10,font:{size:11}}}}}});
+  } else if(reportTab==='purchase'){
+    body.innerHTML = `
+      <div class="grid grid-3" style="margin-bottom:18px;">
+        <div class="card"><div class="section-title">Purchase Trend by Supplier</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div>
+        <div class="card"><div class="section-title">Outstanding Payables</div>${suppliers.map(s=>`<div class="list-row"><div class="list-left"><div class="list-icon" style="background:var(--p-cyan);color:#0891b2;"><i data-lucide="factory" style="width:15px;height:15px;"></i></div><div><div class="list-name">${s.name}</div></div></div><b class="${s.outstanding>0?'tag red':'tag green'}">${inr(s.outstanding)}</b></div>`).join('')}</div>
+      </div>
+      <div class="card"><div class="section-title">Purchase Orders</div><div class="table-wrap"><table><thead><tr><th>PO</th><th>Supplier</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody>${purchaseOrders.map(p=>`<tr><td><b>${p.id}</b></td><td>${p.supplier}</td><td>${inr(p.amount)}</td><td><span class="tag ${p.status==='Received'?'green':'yellow'}">${p.status}</span></td><td>${p.date}</td></tr>`).join('')}</tbody></table></div></div>`;
+    makeChart('rptChart1', {type:'bar', data:{labels:suppliers.map(s=>s.name.split(' ')[0]), datasets:[{data:[384000,152000,520000,96000], backgroundColor:'#0891b2', borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{font:{size:10}}},y:{grid:{color:'#e2e8f0'}}}}});
+  } else if(reportTab==='stock'){
+    body.innerHTML = `
+      <div class="grid grid-3" style="margin-bottom:18px;"><div class="card"><div class="section-title">Stock Value by Category</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div><div class="card"><div class="section-title">Stock Health</div><div class="chart-box"><canvas id="rptChart2"></canvas></div></div></div>
+      <div class="card"><div class="section-title">Full Stock Ledger</div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Batch</th><th>Qty</th><th>Stock Value</th></tr></thead><tbody>${medicines.map(m=>`<tr><td><b>${m.name}</b></td><td>${m.batch}</td><td>${m.stock}</td><td>${inr(m.stock*m.purchase)}</td></tr>`).join('')}</tbody></table></div></div>`;
+    const byCat={}; medicines.forEach(m=>byCat[m.cat]=(byCat[m.cat]||0)+m.stock*m.purchase);
+    makeChart('rptChart1', {type:'bar', data:{labels:Object.keys(byCat), datasets:[{data:Object.values(byCat), backgroundColor:'#34d399', borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{font:{size:10}}},y:{grid:{color:'#e2e8f0'}}}}});
+    const healthy = medicines.filter(m=>m.stock>m.reorder).length, low = medicines.length-healthy;
+    makeChart('rptChart2', {type:'doughnut', data:{labels:['Healthy Stock','Needs Reorder'], datasets:[{data:[healthy,low], backgroundColor:['#10b981','#ef4444'], borderWidth:3, borderColor:'#fff'}]}, options:{cutout:'68%', plugins:{legend:{position:'bottom'}}}});
+  } else if(reportTab==='expiry'){
+    const sorted = [...medicines].sort((a,b)=>daysLeft(a.expiry)-daysLeft(b.expiry));
+    body.innerHTML = `
+      <div class="card" style="margin-bottom:18px;"><div class="section-title">Days to Expiry (All Batches)</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div>
+      <div class="card"><div class="section-title">Expiry Ledger</div><div class="table-wrap"><table><thead><tr><th>Product</th><th>Batch</th><th>Expiry Date</th><th>Days Left</th><th>Risk</th></tr></thead><tbody>${sorted.map(m=>{const d=daysLeft(m.expiry); return `<tr><td><b>${m.name}</b></td><td>${m.batch}</td><td>${m.expiry}</td><td>${d}d</td><td><span class="tag ${d<30?'red':d<90?'yellow':'green'}">${d<30?'Critical':d<90?'Watch':'Safe'}</span></td></tr>`;}).join('')}</tbody></table></div></div>`;
+    makeChart('rptChart1', {type:'bar', data:{labels:sorted.map(m=>m.name.split(' ')[0]), datasets:[{data:sorted.map(m=>daysLeft(m.expiry)), backgroundColor:sorted.map(m=>daysLeft(m.expiry)<30?'#ef4444':daysLeft(m.expiry)<90?'#ca8a04':'#10b981'), borderRadius:6}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}, ticks:{font:{size:9.5}}},y:{grid:{color:'#e2e8f0'}}}}});
+  } else if(reportTab==='gst'){
+    body.innerHTML = `
+      <div class="grid grid-3" style="margin-bottom:18px;">
+        <div class="card"><div class="section-title">GST Collected by Slab</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div>
+        <div class="card"><div class="section-title">GST Summary</div>
+          <div class="list-row"><span class="list-sub">CGST Collected</span><b>${inr(184200)}</b></div>
+          <div class="list-row"><span class="list-sub">SGST Collected</span><b>${inr(184200)}</b></div>
+          <div class="list-row"><span class="list-sub">IGST Collected</span><b>${inr(21000)}</b></div>
+          <div class="list-row"><span class="list-sub">Total Tax Liability</span><b style="color:var(--green);">${inr(389400)}</b></div>
+          <button class="pill-btn primary" style="margin-top:12px; width:100%; justify-content:center;" onclick='downloadCSV("gstr1_export.csv", ${JSON.stringify(medicines.map(m=>({HSN:m.hsn, Product:m.name, GSTRate:m.gst+"%", TaxableValue:m.mrp*m.sold, TaxAmount:(m.mrp*m.sold*m.gst/100).toFixed(2)})))})'><i data-lucide="download" style="width:14px;height:14px;"></i> Export GSTR-1</button>
+        </div>
+      </div>
+      <div class="card"><div class="section-title">HSN-wise Tax Breakdown</div><div class="table-wrap"><table><thead><tr><th>HSN</th><th>Product</th><th>GST Rate</th><th>Taxable Value</th><th>Tax Amount</th></tr></thead><tbody>${medicines.map(m=>`<tr><td>${m.hsn}</td><td><b>${m.name}</b></td><td><span class="tag grey">${m.gst}%</span></td><td>${inr(m.mrp*m.sold)}</td><td>${inr(m.mrp*m.sold*m.gst/100)}</td></tr>`).join('')}</tbody></table></div></div>`;
+    const bySlab={}; medicines.forEach(m=>bySlab[m.gst+'%']=(bySlab[m.gst+'%']||0)+m.mrp*m.sold*m.gst/100);
+    makeChart('rptChart1', {type:'doughnut', data:{labels:Object.keys(bySlab), datasets:[{data:Object.values(bySlab).map(v=>Math.round(v)), backgroundColor:['#10b981','#0891b2','#9333ea'], borderWidth:3, borderColor:'#fff'}]}, options:{cutout:'65%', plugins:{legend:{position:'bottom'}}}});
+  } else if(reportTab==='profit'){
+    body.innerHTML = `
+      <div class="grid grid-3" style="margin-bottom:18px;"><div class="card"><div class="section-title">Profit Trend (6 Months)</div><div class="chart-box"><canvas id="rptChart1"></canvas></div></div><div class="card"><div class="section-title">Margin by Product (Top 5)</div><div class="chart-box"><canvas id="rptChart2"></canvas></div></div></div>
+      <div class="card"><div class="section-title">Product-wise Profitability</div><div class="table-wrap"><table><thead><tr><th>Product</th><th>MRP</th><th>Purchase Price</th><th>Margin %</th><th>Units Sold</th><th>Total Profit</th></tr></thead><tbody>${medicines.map(m=>{const margin=(((m.mrp-m.purchase)/m.mrp)*100).toFixed(1); return `<tr><td><b>${m.name}</b></td><td>${inr(m.mrp)}</td><td>${inr(m.purchase)}</td><td><span class="tag green">${margin}%</span></td><td>${m.sold}</td><td>${inr((m.mrp-m.purchase)*m.sold)}</td></tr>`;}).join('')}</tbody></table></div></div>`;
+    makeChart('rptChart1', {type:'line', data:{labels:['Feb','Mar','Apr','May','Jun','Jul'], datasets:[{label:'Profit', data:[1400000,1520000,1330000,1720000,1630000,1810000], borderColor:'#9333ea', backgroundColor:'rgba(147,51,234,.1)', fill:true, tension:.4}]}, options:{plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{color:'#e2e8f0'}}}}});
+    const top5=[...medicines].sort((a,b)=>(b.mrp-b.purchase)*b.sold-(a.mrp-a.purchase)*a.sold).slice(0,5);
+    makeChart('rptChart2', {type:'bar', data:{labels:top5.map(m=>m.name.split(' ')[0]), datasets:[{data:top5.map(m=>(m.mrp-m.purchase)*m.sold), backgroundColor:'#34d399', borderRadius:6}]}, options:{indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{grid:{color:'#e2e8f0'}},y:{grid:{display:false}}}}});
+  }
+  lucide.createIcons();
+}
+function exportCurrentReport(){
+  if(reportTab==='sales') downloadCSV('sales_report.csv', salesHistory);
+  else if(reportTab==='purchase') downloadCSV('purchase_report.csv', purchaseOrders);
+  else if(reportTab==='stock') downloadCSV('stock_report.csv', medicines.map(m=>({Product:m.name,Batch:m.batch,Qty:m.stock,StockValue:m.stock*m.purchase})));
+  else if(reportTab==='expiry') downloadCSV('expiry_report.csv', medicines.map(m=>({Product:m.name,Batch:m.batch,Expiry:m.expiry,DaysLeft:daysLeft(m.expiry)})));
+  else if(reportTab==='gst') downloadCSV('gst_summary.csv', medicines.map(m=>({HSN:m.hsn,Product:m.name,GST:m.gst+'%',TaxableValue:m.mrp*m.sold,TaxAmount:(m.mrp*m.sold*m.gst/100).toFixed(2)})));
+  else if(reportTab==='profit') downloadCSV('profit_report.csv', medicines.map(m=>({Product:m.name,MRP:m.mrp,Purchase:m.purchase,MarginPct:(((m.mrp-m.purchase)/m.mrp)*100).toFixed(1),UnitsSold:m.sold,TotalProfit:(m.mrp-m.purchase)*m.sold})));
+}
+
+/* ================= SECURITY ================= */
+function renderSecurity(){
+  return `
+  <div class="grid grid-2" style="margin-bottom:18px;">
+    <div class="card">
+      <div class="section-head"><div class="section-title">Users</div><button class="pill-btn primary" onclick="openNewUser()"><i data-lucide="user-plus" style="width:14px;height:14px;"></i> Add User (F2)</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Last Active</th><th></th></tr></thead><tbody>
+        ${users.map(u => `<tr><td><b>${u.name}</b><div style="font-size:11px;color:var(--text-secondary);">${u.email}</div></td><td><span class="tag grey">${u.role}</span></td><td><span class="tag ${u.status==='Active'?'green':'red'}">${u.status}</span></td><td>${u.last}</td><td><div class="icon-sm" onclick="toast('Editing permissions for ${u.name}')"><i data-lucide="key-round" style="width:14px;height:14px;"></i></div></td></tr>`).join('')}
+      </tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="section-title">Role-Based Permissions</div>
+      <div class="tabs" style="margin-bottom:8px;"><div class="tab active">Admin</div><div class="tab" onclick="toast('Showing Sales Executive permissions')">Sales Exec</div><div class="tab" onclick="toast('Showing Billing Clerk permissions')">Billing Clerk</div></div>
+      <div class="perm-grid">${['Dashboard','Product Master','Inventory','Billing / Orders','Purchase','Suppliers','Retailers','Reports','User & Security','Backup','Discounts','Returns'].map(p => `<div class="perm-cell"><input type="checkbox" checked><div>${p}</div></div>`).join('')}</div>
+      <button class="pill-btn primary" style="margin-top:14px; width:100%; justify-content:center;" onclick="toast('Permissions updated')"><i data-lucide="check" style="width:14px;height:14px;"></i> Save Permissions</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-head"><div class="section-title">Audit Log</div><button class="pill-btn" onclick="downloadCSV('audit_log.csv', auditLog.map(a=>({User:a.who, Action:a.action, Time:a.time})))"><i data-lucide="download" style="width:14px;height:14px;"></i> Export</button></div>
+    ${auditLog.map(a => `<div class="list-row"><div class="list-left"><div class="list-icon" style="background:var(--p-cyan); color:#0891b2;"><i data-lucide="${a.icon}" style="width:15px;height:15px;"></i></div><div><div class="list-name">${a.action}</div><div class="list-sub">by ${a.who}</div></div></div><span class="list-sub">${a.time}</span></div>`).join('')}
+  </div>`;
+}
+function openNewUser(){
+  document.getElementById('formModalTitle').textContent = 'Add User';
+  document.getElementById('formModalBody').innerHTML = `
+    <div class="form-grid-2">
+      <div class="form-row"><label>Full Name</label><input placeholder="e.g. Neha Kulkarni"></div>
+      <div class="form-row"><label>Email</label><input placeholder="e.g. neha@nxtgen.com"></div>
+      <div class="form-row"><label>Role</label><select><option>Admin</option><option>Sales Executive</option><option>Billing Clerk</option><option>Warehouse Staff</option></select></div>
+      <div class="form-row"><label>Temporary Password</label><input type="password" placeholder="••••••••"></div>
+    </div>`;
+  openModal('formModal');
+}
+
+/* ================= BACKUP ================= */
+function renderBackup(){
+  return `
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="section-title">Backup Now</div>
+      <div class="backup-box"><i data-lucide="database-backup" style="width:44px;height:44px;color:var(--green);"></i>
+        <div style="font-weight:700; color:var(--text-primary); margin-top:12px;">Your data was last backed up today at 02:00 AM</div>
+        <div style="font-size:12px;color:var(--text-secondary); margin:6px 0 16px;">Includes sales, inventory, retailer and supplier records.</div>
+        <button class="pill-btn primary" onclick="runBackup()"><i data-lucide="cloud-upload" style="width:14px;height:14px;"></i> Backup Now</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-title">Backup History</div>
+      ${['Today, 02:00 AM','Yesterday, 02:00 AM','21 Jul 2026, 02:00 AM','20 Jul 2026, 02:00 AM'].map((t,i) => `
+        <div class="list-row"><div class="list-left"><div class="list-icon" style="background:var(--p-green); color:#65a30d;"><i data-lucide="hard-drive" style="width:15px;height:15px;"></i></div><div><div class="list-name">Full Backup</div><div class="list-sub">${t} · ${(2.1+i*0.3).toFixed(1)} GB</div></div></div>
+          <div class="row-actions"><div class="icon-sm" onclick="toast('Restoring from backup...')"><i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i></div><div class="icon-sm" onclick="runBackup()"><i data-lucide="download" style="width:14px;height:14px;"></i></div></div></div>
+      `).join('')}
+      <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--border-card); display:flex; justify-content:space-between; align-items:center;"><div><div class="list-name">Auto-backup schedule</div><div class="list-sub">Daily at 2:00 AM</div></div><button class="pill-btn" onclick="toast('Schedule updated')">Change</button></div>
+    </div>
+  </div>`;
+}
+function runBackup(){ downloadJSON('nxtgen_erp_backup_'+Date.now()+'.json', {medicines, customers, suppliers, purchaseOrders, salesHistory, users, generatedAt:new Date().toISOString()}); }
+
+/* ================= GLOBAL KEYBOARD SHORTCUTS ================= */
+const f2Actions = {
+  'medicine-master': openAddMedicine, 'purchase': openNewPO, 'suppliers': openNewSupplier,
+  'customers': openNewCustomer, 'security': openNewUser,
+  'billing': ()=>{ document.getElementById('posSearch')?.focus(); },
+};
+document.addEventListener('keydown', (e)=>{
+  const tag = document.activeElement.tagName;
+  const inField = tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT';
+
+  if(e.key==='Escape'){ closeAllOverlays(); return; }
+  if(e.key==='F1'){ e.preventDefault(); openHelpModal(); return; }
+  if(e.key==='F2'){ e.preventDefault(); (f2Actions[currentView]||(()=>toast('No quick-add action for this screen')))(); return; }
+  if(e.key==='F3'){ e.preventDefault(); document.getElementById('globalSearch').focus(); return; }
+  if(e.key==='F4'){ e.preventDefault(); toggleSidebar(); return; }
+  if(e.key==='F5'){ e.preventDefault(); renderView(currentView); toast('Screen refreshed','refresh-cw'); return; }
+  if(e.key==='F6'){ e.preventDefault(); switchView('billing'); return; }
+  if(e.key==='F9'){ e.preventDefault(); if(currentView==='billing') checkout(); else toast('F9 saves the active transaction — open Billing to use it'); return; }
+  if(!inField && e.key==='/'){ e.preventDefault(); document.getElementById('globalSearch').focus(); return; }
+  if(e.ctrlKey && ctrlKeyMap[e.key]){ e.preventDefault(); switchView(ctrlKeyMap[e.key]); return; }
+});
+
+/* ---------- BOOT ---------- */
+buildMenubar();
+buildNav();
+renderView('dashboard');
+tickClock();
+lucide.createIcons();
+</script>
+</body>
+</html>
