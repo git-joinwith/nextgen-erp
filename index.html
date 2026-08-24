@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NXTGEN ERP — Distributor Management Suite</title>
+<title>CognoRx — Distributor Management Suite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -332,7 +332,7 @@ tbody tr:hover{background:#fafbfc;}
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark">NX</div>
-        <div class="brand-text"><b>NXTGEN ERP</b><span>DISTRIBUTOR EDITION</span></div>
+        <div class="brand-text"><b>CognoRx</b><span>DISTRIBUTOR EDITION</span></div>
       </div>
       <div class="sys-status"><span class="dot"></span> All systems operational</div>
       <nav class="nav" id="navList"></nav>
@@ -374,7 +374,7 @@ tbody tr:hover{background:#fafbfc;}
               <i data-lucide="chevron-down" style="width:13px;height:13px;color:var(--text-secondary);"></i>
             </div>
             <div class="dropdown-panel profile-panel" id="profilePanel">
-              <div class="p-head"><div class="avatar">AR</div><div><div class="name" style="font-size:13px;font-weight:700;color:var(--text-primary);">Aditi Rao</div><div class="list-sub">aditi.rao@nxtgen.com</div></div></div>
+              <div class="p-head"><div class="avatar">AR</div><div><div class="name" style="font-size:13px;font-weight:700;color:var(--text-primary);">Aditi Rao</div><div class="list-sub">aditi.rao@cognorx.com</div></div></div>
               <div class="profile-menu-item" onclick="switchView('security')"><i data-lucide="user" style="width:15px;height:15px;"></i> My Profile</div>
               <div class="profile-menu-item" onclick="switchView('security')"><i data-lucide="settings" style="width:15px;height:15px;"></i> Settings</div>
               <div class="profile-menu-item" onclick="toast('Switched to Pharmacist view')"><i data-lucide="repeat" style="width:15px;height:15px;"></i> Switch Role</div>
@@ -390,7 +390,7 @@ tbody tr:hover{background:#fafbfc;}
   <!-- STATUS BAR -->
   <div class="statusbar">
     <div class="sb-left">
-      <span><i data-lucide="building-2" style="width:12px;height:12px;"></i> <b>NXTGEN Distributors Pvt. Ltd.</b></span>
+      <span><i data-lucide="building-2" style="width:12px;height:12px;"></i> <b>CognoRx Distributors Pvt. Ltd.</b></span>
       <span>FY 2026-27</span>
       <span>User: <b>Aditi Rao (Admin)</b></span>
       <span id="currentModuleLabel">Module: Dashboard</span>
@@ -472,7 +472,7 @@ tbody tr:hover{background:#fafbfc;}
 
 <script>
 /* =========================================================
-   NXTGEN ERP — Distributor Management Suite
+   CognoRx — Distributor Management Suite
 ========================================================= */
 
 /* ---------- DUMMY DATA ---------- */
@@ -559,10 +559,10 @@ const salesHistory = [
 ];
 
 const users = [
-  {name:'Aditi Rao', role:'Admin', email:'aditi.rao@nxtgen.com', status:'Active', last:'Today, 09:40 AM'},
-  {name:'Karan Verma', role:'Sales Executive', email:'karan.verma@nxtgen.com', status:'Active', last:'Today, 08:55 AM'},
-  {name:'Sneha Iyer', role:'Billing Clerk', email:'sneha.iyer@nxtgen.com', status:'Active', last:'Yesterday, 07:20 PM'},
-  {name:'Manoj Pillai', role:'Warehouse Staff', email:'manoj.pillai@nxtgen.com', status:'Inactive', last:'3 days ago'},
+  {name:'Aditi Rao', role:'Admin', email:'aditi.rao@cognorx.com', status:'Active', last:'Today, 09:40 AM'},
+  {name:'Karan Verma', role:'Sales Executive', email:'karan.verma@cognorx.com', status:'Active', last:'Today, 08:55 AM'},
+  {name:'Sneha Iyer', role:'Billing Clerk', email:'sneha.iyer@cognorx.com', status:'Active', last:'Yesterday, 07:20 PM'},
+  {name:'Manoj Pillai', role:'Warehouse Staff', email:'manoj.pillai@cognorx.com', status:'Inactive', last:'3 days ago'},
 ];
 
 const auditLog = [
@@ -619,10 +619,10 @@ const ctrlKeyMap = {'1':'dashboard','2':'medicine-master','3':'inventory','4':'b
 /* ---------- MENU BAR CONFIG (classic ERP style) ---------- */
 const menuConfig = [
   {label:'File', items:[
-    {label:'Select Company', action:()=>toast('Active Company: NXTGEN Distributors Pvt. Ltd.')},
+    {label:'Select Company', action:()=>toast('Active Company: CognoRx Distributors Pvt. Ltd.')},
     {label:'Company Info', action:()=>switchView('security')},
     {label:'sep'},
-    {label:'Exit', action:()=>toast('Use the browser tab to close NXTGEN ERP')},
+    {label:'Exit', action:()=>toast('Use the browser tab to close CognoRx')},
   ]},
   {label:'Masters', items:[
     {label:'Product / Medicine Master', shortcut:'Ctrl+2', action:()=>switchView('medicine-master')},
@@ -651,7 +651,7 @@ const menuConfig = [
   ]},
   {label:'Help', items:[
     {label:'Keyboard Shortcuts', shortcut:'F1', action:()=>openHelpModal()},
-    {label:'About NXTGEN ERP', action:()=>toast('NXTGEN ERP v2.4 — Distributor Edition','info')},
+    {label:'About CognoRx', action:()=>toast('CognoRx v2.4 — Distributor Edition','info')},
   ]},
 ];
 
@@ -707,7 +707,7 @@ function downloadJSON(filename, obj){ downloadTextFile(filename, JSON.stringify(
 /* ---------- MENU BAR RENDER ---------- */
 function buildMenubar(){
   const mb = document.getElementById('menubar');
-  mb.innerHTML = `<div class="brand-mini"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> NXTGEN ERP</div>` +
+  mb.innerHTML = `<div class="brand-mini"><i data-lucide="layout-grid" style="width:14px;height:14px;"></i> CognoRx</div>` +
     menuConfig.map((m,i) => `
       <div class="menubar-item" data-menu="${i}" onclick="toggleMenubarItem(${i})">
         ${m.label}
@@ -1162,14 +1162,14 @@ function checkout(){
   const invId = 'INV-' + (invoiceCounter++);
   const now = new Date().toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
   document.getElementById('invoiceContent').innerHTML = `
-    <div class="invoice-brand"><b>NXTGEN Distributors Pvt. Ltd.</b><div>GSTIN: 27NXTGN1234P1Z8 · ${invId}</div></div>
+    <div class="invoice-brand"><b>CognoRx Distributors Pvt. Ltd.</b><div>GSTIN: 27CGNRX1234P1Z8 · ${invId}</div></div>
     <div class="invoice-meta"><span>Retailer: ${custName}</span><span>${now}</span></div>
     <table class="invoice-table"><thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${cart.map(c => `<tr><td>${c.med.name}</td><td>${c.qty}</td><td>${inr(c.med.mrp)}</td><td style="text-align:right;">${inr(c.med.mrp*c.qty)}</td></tr>`).join('')}</tbody></table>
     <div class="sum-row"><span>Subtotal</span><span>${inr(t.subtotal)}</span></div>
     <div class="sum-row"><span>Discount (${t.discountPct||0}%)</span><span>− ${inr(t.discountAmt)}</span></div>
     <div class="sum-row"><span>GST Included</span><span>${inr(t.gstDisplay)}</span></div>
     <div class="sum-row total"><span>Total Paid (${activePayment})</span><span>${inr(t.total)}</span></div>`;
-  lastInvoiceText = `NXTGEN DISTRIBUTORS PVT. LTD.\nGSTIN: 27NXTGN1234P1Z8\nInvoice: ${invId}\nRetailer: ${custName}\nDate: ${now}\n${'-'.repeat(40)}\n` +
+  lastInvoiceText = `COGNORX DISTRIBUTORS PVT. LTD.\nGSTIN: 27CGNRX1234P1Z8\nInvoice: ${invId}\nRetailer: ${custName}\nDate: ${now}\n${'-'.repeat(40)}\n` +
     cart.map(c => `${c.med.name} x${c.qty} @ ${inr(c.med.mrp)} = ${inr(c.med.mrp*c.qty)}`).join('\n') +
     `\n${'-'.repeat(40)}\nSubtotal: ${inr(t.subtotal)}\nDiscount: -${inr(t.discountAmt)}\nGST Included: ${inr(t.gstDisplay)}\nTOTAL PAID (${activePayment}): ${inr(t.total)}\n\nThank you for your business!`;
   cart.forEach(c => { const m = medicines.find(x=>x.id===c.med.id); m.stock = Math.max(0, m.stock - c.qty); });
@@ -1195,7 +1195,7 @@ function renderPurchase(){
     </tbody></table></div>
   </div>
   <div class="grid grid-2" style="margin-top:18px;">
-    <div class="card"><div class="section-title">Goods Receipt Note</div><p style="font-size:12.3px;color:var(--text-secondary); line-height:1.6;">When a purchase order is marked as received, NXTGEN ERP automatically creates new batch entries in Inventory Management with the batch number, expiry date and quantity supplied.</p><button class="pill-btn" style="margin-top:12px;" onclick="toast('Goods receipt recorded')"><i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Record Goods Receipt</button></div>
+    <div class="card"><div class="section-title">Goods Receipt Note</div><p style="font-size:12.3px;color:var(--text-secondary); line-height:1.6;">When a purchase order is marked as received, CognoRx automatically creates new batch entries in Inventory Management with the batch number, expiry date and quantity supplied.</p><button class="pill-btn" style="margin-top:12px;" onclick="toast('Goods receipt recorded')"><i data-lucide="clipboard-check" style="width:14px;height:14px;"></i> Record Goods Receipt</button></div>
     <div class="card"><div class="section-title">Purchase Returns</div><p style="font-size:12.3px;color:var(--text-secondary); line-height:1.6;">Return damaged or expired stock to suppliers and automatically adjust inventory and outstanding balances.</p><button class="pill-btn danger" style="margin-top:12px;" onclick="toast('Purchase return initiated')"><i data-lucide="corner-up-left" style="width:14px;height:14px;"></i> Initiate Return</button></div>
   </div>`;
 }
@@ -1439,7 +1439,7 @@ function openNewUser(){
   document.getElementById('formModalBody').innerHTML = `
     <div class="form-grid-2">
       <div class="form-row"><label>Full Name</label><input placeholder="e.g. Neha Kulkarni"></div>
-      <div class="form-row"><label>Email</label><input placeholder="e.g. neha@nxtgen.com"></div>
+      <div class="form-row"><label>Email</label><input placeholder="e.g. neha@cognorx.com"></div>
       <div class="form-row"><label>Role</label><select><option>Admin</option><option>Sales Executive</option><option>Billing Clerk</option><option>Warehouse Staff</option></select></div>
       <div class="form-row"><label>Temporary Password</label><input type="password" placeholder="••••••••"></div>
     </div>`;
@@ -1468,7 +1468,7 @@ function renderBackup(){
     </div>
   </div>`;
 }
-function runBackup(){ downloadJSON('nxtgen_erp_backup_'+Date.now()+'.json', {medicines, customers, suppliers, purchaseOrders, salesHistory, users, generatedAt:new Date().toISOString()}); }
+function runBackup(){ downloadJSON('cognorx_erp_backup_'+Date.now()+'.json', {medicines, customers, suppliers, purchaseOrders, salesHistory, users, generatedAt:new Date().toISOString()}); }
 
 /* ================= GLOBAL KEYBOARD SHORTCUTS ================= */
 const f2Actions = {
